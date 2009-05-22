@@ -1,0 +1,22 @@
+/** * Copyright (c) 2008 ZAAZ, Inc *  * Permission is hereby granted, free of charge, to any person obtaining a copy * of this software and associated documentation files (the "Software"), to deal * in the Software without restriction, including without limitation the rights * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell * copies of the Software, and to permit persons to whom the Software is * furnished to do so, subject to the following conditions: *  * The above copyright notice and this permission notice shall be included in * all copies or substantial portions of the Software. *  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN * THE SOFTWARE. */package com.zaaz.goasap.core{	import flash.display.DisplayObject;
+	
+	import org.goasap.PlayStates;
+	import org.goasap.interfaces.IManageable;
+	import org.goasap.items.LinearGo;	
+
+	/**	 * A class to tween the rotation of a DisplayObject	 * 	 * @author Graeme Asher (flashdev@zaaz.com)	 */	public class RotationTween extends LinearGo implements IManageable	{		protected var _target:DisplayObject;		protected var _rotateTo:Number;		protected var _rotateStart:Number;		protected var _rotateChange:Number;				protected var _localRotateStart:Number;
+		
+		/**		 * Constructor		 * @param target		A DisplayObject to rotate.		 * @param rotateTo		The degree to rotate to.  Positive or negative.		 * @param duration		The amount of time to tween.		 * @param delay			The amount of time to delay the start of the tween.		 * @param easing		The easing equation for the tween.		 * @param rotateStart	Sets the target to a starting roattion and begins tween from that point.		 */		public function RotationTween(target:DisplayObject = null, rotateTo:Number = NaN, duration:Number = NaN, easing:Function = null, delay:Number = NaN, rotateStart:Number = NaN) 		{			super(delay, duration, easing);						if(target != null) 				this.target = target;			if(!isNaN(rotateTo)) 				this.rotateTo = rotateTo;				//			if(!isNaN(rotateStart))				_rotateStart = rotateStart;		}
+		
+		//Getters & Setters		/**		 * Target of the tween		 */		public function get target():DisplayObject 		{			return _target;		}
+		public function set target(target:DisplayObject):void 		{			if(super._state == PlayStates.STOPPED) 				_target = target;		}
+		/**		 * The rotation value that will be tweened to.		 */		public function get rotateTo():Number 		{			return _rotateTo;		}
+		public function set rotateTo(value:Number):void 		{			if(super._state == PlayStates.STOPPED) 				_rotateTo = value;		}
+		/**		 * Value of rotation to start from. If this is not set the existing value will be used.		 */		public function get rotateStart():Number		{			return _rotateStart;			}
+		public function set rotateStart(value:Number):void		{			if(super._state == PlayStates.STOPPED) 				_rotateStart = value;			}
+		//Overiden Methods		override public function start():Boolean 		{			if(target == null || (isNaN(rotateTo))) 				return false;						_localRotateStart = _rotateStart;						if(isNaN(_localRotateStart))				_localRotateStart = target.rotation;			else				target.rotation = _localRotateStart;						if(super.useRelative) 				_rotateChange = _rotateTo;			else 				_rotateChange = (_rotateTo - _localRotateStart);						return super.start();		}
+		override protected function onUpdate(type:String):void 		{			if(!isNaN(_rotateTo)) 				target.rotation = super.correctValue(_localRotateStart + (_rotateChange * _position));		}
+		// IManageable implementation		public function getActiveTargets():Array 		{			return [_target];		}
+		public function getActiveProperties():Array 		{			return ["rotation"];		}
+		public function isHandling(properties:Array):Boolean 		{			if(state == PlayStates.STOPPED)                return false;                			return (properties.indexOf("rotation") > -1);		}
+		public function releaseHandling(...params):void 		{			stop();		}	}}

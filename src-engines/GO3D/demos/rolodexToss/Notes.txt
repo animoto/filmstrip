@@ -1,0 +1,3 @@
+To run this demo, you'll need to edit the class file directories for Go and Papervision as well as Go3D.
+
+This demo is compatible with Papervision3D 2.0 ( Great White )
