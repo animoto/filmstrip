@@ -83,8 +83,8 @@ package
 		
 		protected function test(event:MouseEvent):void {
 			event.stopPropagation(); // prevents reset from receiving mouse click
-			var d:SelectiveBitmapDraw = new SelectiveBitmapDraw(bd);
-			d.draw(scene, [ event.target ]);
+			var d:SelectiveBitmapDraw = new SelectiveBitmapDraw(bd, scene);
+			d.draw([ event.target ]);
 		}
 		
 		protected function setup_many_at_top_level():void {
@@ -116,9 +116,6 @@ package
 			sprites[5].rotation = 15;
 			sprites.push(sprites[3].addChild(item(45, 65)));
 			sprites[6].rotation = -15;
-			for each (var sprite:Sprite in sprites) {
-				sprite.name = "sprite"+((sprites.length - sprites.indexOf(sprite)) - 1);
-			}
 		}
 		
 		protected function item(x:Number=0, y:Number=0):Sprite {

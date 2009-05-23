@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2008 Moses Gunesch
+ * Copyright (c) 2009 Moses Gunesch
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,31 +40,74 @@ package com.mosesSupposes.util
 	 */
 	public class SelectiveBitmapDraw extends SelectiveDrawBase
 	{
-		public function SelectiveBitmapDraw(bitmapData:BitmapData)
+		public var drawSource:IBitmapDrawable;
+		public var topContainer:DisplayObjectContainer;
+		
+		/**
+		 * Constructor. 
+		 * 
+		 * @param bitmapData	BitmapData to draw to, accessible in the property <code>bitmapData</code>. 
+		 * @param source		Source object for BitmapData.draw(), and default top-level object to work within.
+		 */
+		public function SelectiveBitmapDraw(bitmapData:BitmapData, source:DisplayObjectContainer)
 		{
 			super(bitmapData);
+			this.drawSource = source as IBitmapDrawable;
+			this.topContainer = source;
 		}
 		
-		public function draw(container:DisplayObjectContainer, selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
-			var doRestore:Boolean = manualPreDraw(container, selectiveChildren);
-			bitmapData.draw(container, matrix, colorTransform, blendMode, clipRect, smoothing);
+		/**
+		 * Full draw cycle including toggle, capture, and restore.
+		 * 
+		 * @param selectiveChildren		Objects to leave visible for the capture, others are turned off.
+		 * @param matrix				Param passed to BitmapData.draw().
+		 * @param colorTransform		Param passed to BitmapData.draw().
+		 * @param blendMode				Param passed to BitmapData.draw().
+		 * @param clipRect				Param passed to BitmapData.draw().
+		 * @param smoothing				Param passed to BitmapData.draw().
+		 * @return 
+		 */
+		public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
+			var doRestore:Boolean = manualPreDraw(selectiveChildren);
+			bitmapData.draw(drawSource, matrix, colorTransform, blendMode, clipRect, smoothing);
 			if (doRestore) {
 				manualPostDraw();
 			}
 			return bitmapData;
 		}
 		
-		public function manualPreDraw(container:DisplayObjectContainer, selectiveChildren:Array):Boolean {
-			super.setParents(container, selectiveChildren);
-			return (toggleChildren(container) > 0);
+		/**
+		 * Performs toggling off of objects not in the <code>selectiveChildren</code> Array.
+		 * 
+		 * <p>You'd only want to use this method if you aren't using this class' draw() method,
+		 * and after doing your own capture you should call manualPostDraw().</p>
+		 * 
+		 * @param selectiveChildren		Objects to leave visible for the capture, others are turned off.
+		 * 
+		 * @return 						If false no objects were toggled off, which means you don't need
+		 * 								to call manualPostDraw().
+		 */
+		public function manualPreDraw(selectiveChildren:Array):Boolean {
+			super.setParents(selectiveChildren, topContainer);
+			return (toggleChildren(topContainer) > 0);
 		}
 		
+		/**
+		 * If you used manualPreDraw() this restores visibility of toggled objects.
+		 */
 		public function manualPostDraw():void {
 			super.restore();
 		}
 		
 		// -== Private Methods ==-
 		
+		/**
+		 * @private
+		 * 
+		 * @param container		Scope to sweep.
+		 * @return 				Number of objects toggled off.
+		 * 
+		 */
 		protected function toggleChildren(container:DisplayObjectContainer):int {
 			var count: int = 0, node:DisplayObject, c:DisplayObjectContainer;
 			var numChildren:int = container.numChildren;
@@ -72,7 +115,7 @@ package com.mosesSupposes.util
 				node = container.getChildAt(i);
 				c = (node as DisplayObjectContainer)
 				if (node.visible) {
-					if (parents[node]==null) {
+					if (locked[node]==null) {
 						toggled[node] = 1;
 						node.visible = false;
 						count ++;

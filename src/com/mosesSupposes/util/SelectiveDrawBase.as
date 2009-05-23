@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2008 Moses Gunesch
+ * Copyright (c) 2009 Moses Gunesch
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,7 @@ package com.mosesSupposes.util
 	import flash.utils.Dictionary;
 	
 	/**
-	 * Allows the capture of selective children within a DisplayObject.
-	 * 
-	 * <p>It works by toggling visibility off for other children,
-	 * then immediately restoring their visibility after draw().</p>
+	 * Base class for SelectiveBitmapDraw utils.
 	 * 
 	 * @version 2.0
 	 * @author moses gunesch
@@ -37,7 +34,7 @@ package com.mosesSupposes.util
 	{
 		public var bitmapData:BitmapData;
 		
-		protected var parents:Dictionary = new Dictionary(true);
+		protected var locked:Dictionary = new Dictionary(true);
 		protected var toggled:Dictionary = new Dictionary(true);
 		
 		public function SelectiveDrawBase(bitmapData:BitmapData)
@@ -45,18 +42,15 @@ package com.mosesSupposes.util
 			this.bitmapData = bitmapData;
 		}
 		
-		protected function setParents(topNode:Object, selectiveChildren:Array):void {
+		protected function setParents(selectiveChildren:Array, topNode:Object):void {
 			for each (var node:Object in selectiveChildren) {
-				if (node==topNode) {
-					break;
-				}
 				do {
-					if (parents[node]==null) {
-						parents[node] = 1;
+					if (locked[node]==null) {
+						locked[node] = 1;
 					}
 					node = (node.hasOwnProperty("parent") ? node.parent : null);
 				}
-				while (node!=null);
+				while (node!=null && node!=topNode);
 			}
 		}
 		
@@ -69,8 +63,8 @@ package com.mosesSupposes.util
 				target.visible = true;
 				delete toggled[target];
 			}
-			for (target in parents) {
-				delete parents[target];
+			for (target in locked) {
+				delete locked[target];
 			}
 		}
 	}
