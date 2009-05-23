@@ -54,7 +54,7 @@ package com.mosesSupposes.util
 					if (parents[node]==null) {
 						parents[node] = 1;
 					}
-					if (node.hasOwnProperty("parent") ? node.parent : null);
+					node = (node.hasOwnProperty("parent") ? node.parent : null);
 				}
 				while (node!=null);
 			}

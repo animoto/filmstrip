@@ -13,6 +13,7 @@ package {
 		private var t:TextField;
 		public function FilmStripExample()
 		{
+			super();
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
 			var d:Dice = new Dice();
