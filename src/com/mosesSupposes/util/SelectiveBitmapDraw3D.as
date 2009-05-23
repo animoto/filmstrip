@@ -63,41 +63,46 @@ package com.mosesSupposes.util
 		}
 		
 		public function draw(container:DisplayObject3D, selectiveChildren:Array, source:IBitmapDrawable, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):void {
-			var doRestore:Boolean = manualPre(container, selectiveChildren);
-			super.manualDraw(source, selectiveChildren, true, matrix, colorTransform, blendMode, clipRect, smoothing);
-		}
-		
-		public function manualPre(container:DisplayObject3D, selectiveChildren:Array):Boolean {
-			var count:int = super.protectParentNodes(container, selectiveChildren);
-			if ((count += prepareNodes(container)) > 0) {
-				reRenderScene3D();
-			}
-			return Boolean(count);
-		}
-		
-		override public function manualDraw(source:IBitmapDrawable, selectiveChildren:Array, manualRestore:Boolean=false, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):void {
-			super.manualDraw(source, selectiveChildren, manualRestore, matrix, colorTransform, blendMode, clipRect, smoothing);
-			if (manualRestore) {
-				reRenderScene3D();
+			var doRestore:Boolean = manualPreDraw(container, selectiveChildren);
+			bitmapData.draw(source, matrix, colorTransform, blendMode, clipRect, smoothing);
+			if (doRestore) {
+				manualPostDraw();
 			}
 		}
 		
-		protected function prepareNodes(container:DisplayObject3D):int {
+		public function manualPreDraw(container:DisplayObject3D, selectiveChildren:Array):Boolean {
+			super.setParents(container, selectiveChildren);
+			if (toggleChildren(container) > 0) {
+				doRender();
+			}
+			return (toggleChildren(container) > 0);
+		}
+		
+		public function manualPostDraw():void {
+			super.restore();
+			doRender();
+		}
+		
+		// -== Private Methods ==-
+		
+		protected function toggleChildren(container:DisplayObject3D):int {
 			var count: int = 0;
 			for each (var node:DisplayObject3D in container.children) {
-				if (node.visible && protectedNodes[node]==null) {
-					nodesToggled[node] = 1;
-					node.visible = false;
-					count++;
-				}
-				if (node.numChildren>0) {
-					count += prepareNodes(node);
+				if (node.visible) {
+					if (parents[node]==null) {
+						toggled[node] = 1;
+						node.visible = false;
+						count++;
+					}
+					else if (node.numChildren>0) {
+						count += toggleChildren(node);
+					}
 				}
 			}
 			return count;
 		}
 		
-		protected function reRenderScene3D():void {
+		protected function doRender():void {
 			if (viewportLayersToRender!=null && renderer is BasicRenderEngine) {
 				(renderer as BasicRenderEngine).renderLayers(scene, camera, viewport, viewportLayersToRender);
 			}

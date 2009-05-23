@@ -22,11 +22,6 @@
 package com.mosesSupposes.util
 {
 	import flash.display.BitmapData;
-	import flash.display.DisplayObjectContainer;
-	import flash.display.IBitmapDrawable;
-	import flash.geom.ColorTransform;
-	import flash.geom.Matrix;
-	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
 	/**
@@ -35,57 +30,47 @@ package com.mosesSupposes.util
 	 * <p>It works by toggling visibility off for other children,
 	 * then immediately restoring their visibility after draw().</p>
 	 * 
-	 * @version 1.0
+	 * @version 2.0
 	 * @author moses gunesch
 	 */
 	public class SelectiveDrawBase
 	{
 		public var bitmapData:BitmapData;
 		
-		protected var protectedNodes:Dictionary = new Dictionary(true);
-		protected var nodesToggled:Dictionary = new Dictionary(true);
+		protected var parents:Dictionary = new Dictionary(true);
+		protected var toggled:Dictionary = new Dictionary(true);
 		
 		public function SelectiveDrawBase(bitmapData:BitmapData)
 		{
 			this.bitmapData = bitmapData;
 		}
 		
-		public function manualDraw(source:IBitmapDrawable, selectiveChildren:Array, manualRestore:Boolean=false, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):void {
-			bitmapData.draw(source, matrix, colorTransform, blendMode, clipRect, smoothing);
-			if (manualRestore) {
-				restoreNodes();
-			}
-		}
-		
-		protected function protectParentNodes(topNode:Object, selectiveChildren:Array):int {
-			var protectCount:int = 0;
+		protected function setParents(topNode:Object, selectiveChildren:Array):void {
 			for each (var node:Object in selectiveChildren) {
 				if (node==topNode) {
 					break;
 				}
 				do {
-					if (protectedNodes[node]==null) {
-						protectedNodes[node] = 1;
-						protectCount++;
+					if (parents[node]==null) {
+						parents[node] = 1;
 					}
 					if (node.hasOwnProperty("parent") ? node.parent : null);
 				}
 				while (node!=null);
 			}
-			return protectCount;
 		}
 		
-		protected function restoreNodes():void {
-			if (nodesToggled==null) {
+		protected function restore():void {
+			if (toggled==null) {
 				return;
 			}
 			var target:Object;
-			for (target in nodesToggled) {
+			for (target in toggled) {
 				target.visible = true;
-				delete nodesToggled[target];
+				delete toggled[target];
 			}
-			for (target in protectedNodes) {
-				delete protectedNodes[target];
+			for (target in parents) {
+				delete parents[target];
 			}
 		}
 	}

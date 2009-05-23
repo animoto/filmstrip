@@ -24,6 +24,7 @@ package com.mosesSupposes.util
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.IBitmapDrawable;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.geom.Rectangle;
@@ -34,7 +35,7 @@ package com.mosesSupposes.util
 	 * <p>It works by toggling visibility off for other children,
 	 * then immediately restoring their visibility after draw().</p>
 	 * 
-	 * @version 1.0
+	 * @version 2.0
 	 * @author moses gunesch
 	 */
 	public class SelectiveBitmapDraw extends SelectiveDrawBase
@@ -44,30 +45,41 @@ package com.mosesSupposes.util
 			super(bitmapData);
 		}
 		
-		public function draw(container:DisplayObjectContainer, selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):void {
-			var doRestore:Boolean = manualPre(container, selectiveChildren);
-			super.manualDraw(container, selectiveChildren, doRestore, matrix, colorTransform, blendMode, clipRect, smoothing);
+		public function draw(container:DisplayObjectContainer, selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
+			var doRestore:Boolean = manualPreDraw(container, selectiveChildren);
+			bitmapData.draw(container, matrix, colorTransform, blendMode, clipRect, smoothing);
+			if (doRestore) {
+				manualPostDraw();
+			}
+			return bitmapData;
 		}
 		
-		public function manualPre(container:DisplayObjectContainer, selectiveChildren:Array):Boolean {
-			var count:int = super.protectParentNodes(container, selectiveChildren);
-			return Boolean(count += prepareNodes(container));
+		public function manualPreDraw(container:DisplayObjectContainer, selectiveChildren:Array):Boolean {
+			super.setParents(container, selectiveChildren);
+			return (toggleChildren(container) > 0);
 		}
 		
-		protected function prepareNodes(container:DisplayObjectContainer):int {
-			var count: int = 0;
-			var node:DisplayObject;
+		public function manualPostDraw():void {
+			super.restore();
+		}
+		
+		// -== Private Methods ==-
+		
+		protected function toggleChildren(container:DisplayObjectContainer):int {
+			var count: int = 0, node:DisplayObject, c:DisplayObjectContainer;
 			var numChildren:int = container.numChildren;
 			for (var i:int=0; i<numChildren; i++) {
 				node = container.getChildAt(i);
-				if (node.visible && protectedNodes[node]==null) {
-					nodesToggled[node] = 1;
-					node.visible = false;
-					count ++;
-				}
-				var c: DisplayObjectContainer = node as DisplayObjectContainer;
-				if (c.numChildren>0) {
-					count += prepareNodes(c);
+				c = (node as DisplayObjectContainer)
+				if (node.visible) {
+					if (parents[node]==null) {
+						toggled[node] = 1;
+						node.visible = false;
+						count ++;
+					}
+					else if (c!=null && c.numChildren>0) {
+						count += toggleChildren(c);
+					}
 				}
 			}
 			return count;
