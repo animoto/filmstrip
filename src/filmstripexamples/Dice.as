@@ -29,10 +29,10 @@ package filmstripexamples
 		public static var seedMaterial: MaterialObject3D;
 
 		public var scene: Scene3D;
-		protected var _camera:Camera3D;
-		protected var _viewport:Viewport3D;
-//		protected var _viewport:BitmapViewport3D;
-		protected var _renderer:BasicRenderEngine;
+		public var camera:Camera3D;
+		public var viewport:Viewport3D;
+//		public var viewport:BitmapViewport3D;
+		public var renderer:BasicRenderEngine;
 		protected var _light: LightObject3D;
 		protected var _holder: DisplayObject3D;
 		protected var _cube1: Cube;
@@ -48,20 +48,20 @@ package filmstripexamples
 		}
 		
 		protected function setupScene(e:Event):void {
-			_viewport = new Viewport3D(1000, 700, true, false, true, true);
-//			_viewport = new BitmapViewport3D(1000, 700, false, true, 0x0, false, true);
-			addChild(_viewport);
-			_renderer = new BasicRenderEngine();
-			_camera = new Camera3D();
-			_camera.zoom = 1;
-			_camera.focus = 1000;
-			//_camera.z = -1000;
+			viewport = new Viewport3D(1000, 700, true, false, true, true);
+//			viewport = new BitmapViewport3D(1000, 700, false, true, 0x0, false, true);
+			addChild(viewport);
+			renderer = new BasicRenderEngine();
+			camera = new Camera3D();
+			camera.zoom = 1;
+			camera.focus = 1000;
+			//camera.z = -1000;
 			scene = new Scene3D();
 			_light = new LightObject3D();
 			_light.z = -3000;
 			_light.x = 400;
 			_light.y = -10;
-			//_stats = new StatsView(_renderer);
+			//_stats = new StatsView(renderer);
 			//addChild(_stats);
 			
 			// Use lighting
@@ -88,10 +88,10 @@ package filmstripexamples
 			
 			var cubeSize:Number = 150;
 			
-			_camera.x = 800;
-			_camera.y = 1200;
-			_camera.z = -1000;
-			_camera.zoom = 1;
+			camera.x = 800;
+			camera.y = 1200;
+			camera.z = -1000;
+			camera.zoom = 1;
 			
 			_floor = new Plane(seedMaterial, 1000, 1000);
 			_floor.y = -50;
@@ -116,11 +116,11 @@ package filmstripexamples
 			
 			
 			// BitmapEffectLayers
-			_bel0 = new BitmapEffectLayer(_viewport, _viewport.width, _viewport.height, true, 0x0, BitmapClearMode.CLEAR_PRE, false, true);
+			_bel0 = new BitmapEffectLayer(viewport, viewport.width, viewport.height, true, 0x0, BitmapClearMode.CLEAR_PRE, false, true);
 			_bel0.addDisplayObject3D(_holder);
-			_bel1 = new BitmapEffectLayer(_viewport, _viewport.width, _viewport.height, true, 0x0, BitmapClearMode.CLEAR_PRE, false, true);
+			_bel1 = new BitmapEffectLayer(viewport, viewport.width, viewport.height, true, 0x0, BitmapClearMode.CLEAR_PRE, false, true);
 			_bel1.addDisplayObject3D(_cube1);
-			_bel2 = new BitmapEffectLayer(_viewport, _viewport.width, _viewport.height, true, 0x0, BitmapClearMode.CLEAR_PRE, false, true);
+			_bel2 = new BitmapEffectLayer(viewport, viewport.width, viewport.height, true, 0x0, BitmapClearMode.CLEAR_PRE, false, true);
 			_bel2.addDisplayObject3D(_cube2);
 			
 			// Effects
@@ -133,9 +133,9 @@ package filmstripexamples
 			
 			_bel0.addLayer(_bel1);
 			_bel0.addLayer(_bel2);
-			_viewport.containerSprite.addLayer(_bel0);
-//			_viewport.containerSprite.addLayer(_bel1);
-//			_viewport.containerSprite.addLayer(_bel2);
+			viewport.containerSprite.addLayer(_bel0);
+//			viewport.containerSprite.addLayer(_bel1);
+//			viewport.containerSprite.addLayer(_bel2);
 			trace(_bel1.effects.length);
 			trace(_bel2.effects.length);
 			
@@ -147,7 +147,7 @@ package filmstripexamples
 			Tweener.addTween(_cube2, {x:550, time:.9, transition:"easeoutquad"});
 			Tweener.addTween(_cube2, {x:300, time:.5, rotationY:-180, delay:.6, transition:"easeoutcirc"});
 			
-			Tweener.addTween(_camera, {x:300, y:300, zoom:1, time:2, transition:"easeinoutquad"});
+			Tweener.addTween(camera, {x:300, y:300, zoom:1, time:2, transition:"easeinoutquad"});
 			
 			// Test to prove _holder
 //			Tweener.addTween(_holder, {scaleX:.5, scaleY:.5, scaleZ:.5, time:.5, transition:"easeincirc"});
@@ -161,7 +161,7 @@ package filmstripexamples
 //			s.addStep(t2);
 //			
 //			var cs:Sequence = new Sequence();
-//			var ct1:Tween3D = new Tween3D(_camera, [Value.x(500), Value.y(1200), Value.zoom(1.5)], 1.5, Easing.easeInQuad, 0);
+//			var ct1:Tween3D = new Tween3D(camera, [Value.x(500), Value.y(1200), Value.zoom(1.5)], 1.5, Easing.easeInQuad, 0);
 //			cs.addStep(ct1);
 //			
 //			var g:PlayableGroup = new PlayableGroup(cs, s);
@@ -171,8 +171,8 @@ package filmstripexamples
 		}
 		
 		protected function update(e:Event=null):void {
-			_renderer.renderScene(scene, _camera, _viewport);
-			_camera.lookAt(_floor);
+			renderer.renderScene(scene, camera, viewport);
+			camera.lookAt(_floor);
 		}
 	}
 }

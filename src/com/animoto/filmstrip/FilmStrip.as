@@ -1,5 +1,7 @@
 package com.animoto.filmstrip
 {
+	import com.animoto.filmstrip.scenes.IFilmStripScene;
+	
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
@@ -7,11 +9,23 @@ package com.animoto.filmstrip
 
 	public class FilmStrip extends EventDispatcher
 	{
+		public static var throwErrors: Boolean = true;
+		public static function error(message:String):void {
+			if (throwErrors)
+				throw new Error(message);
+			else
+				trace ("* FilmStrip Error: " + message + " *");
+		}
+		
 		public var scenes: Array = new Array();
 		public var bitmapScene: FilmStripBitmapScene;
+		public var width: Number = NaN;
+		public var height: Number = NaN;
 		public var frameRate: int = 15;
-		public var duration: Number;
-		public var bufferMilliseconds: int = 1;
+		public var durationInSeconds: Number = NaN;
+		public var transparent: Boolean = false;
+		public var backgroundColor: Number = 0xFFFFFF;
+		public var bufferMilliseconds: int = 0;
 		
 		public function get rendering(): Boolean {
 			return _rendering;
@@ -19,9 +33,9 @@ package com.animoto.filmstrip
 		
 		protected var _start:Number;
 		protected var _rendering:Boolean;
-		protected var _buffer:Timer = new Timer(1, 1);
+		protected var _buffer:Timer = new Timer(0, 1);
 		
-		public function FilmStrip(scene:FilmStripScene)
+		public function FilmStrip(scene:IFilmStripScene)
 		{
 			super();
 			addScene( scene );
@@ -29,14 +43,30 @@ package com.animoto.filmstrip
 			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, renderNextFrame, false, 0, true);
 		}
 		
-		public function addScene(scene:FilmStripScene):void {
+		public function addScene(scene:IFilmStripScene):void {
 			scenes.push( scene );
 		}
 		
-		public function startRendering(durationInSeconds:Number=NaN):void {
-			if (scenes!=null) {
+		public function getSceneAt(index:int):IFilmStripScene {
+			return scenes[index] as IFilmStripScene;
+		}
+		
+		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
+			
+			if (!isNaN(width))					{ this.width = int(width); }
+			if (!isNaN(height))					{ this.height = int(height); }
+			if (!isNaN(frameRate))				{ this.frameRate = int(frameRate); }
+			if (!isNaN(durationInSeconds))		{ this.durationInSeconds = durationInSeconds; }
+			if (transparent!=null)				{ this.transparent = Boolean(transparent); }
+			if (!isNaN(backgroundColor))		{ this.backgroundColor = backgroundColor; }
+			if (!isNaN(bufferMilliseconds))		{ this.bufferMilliseconds = int(bufferMilliseconds); }
+			
+			if (scenes!=null && scenes.length>0) {
+				// If no size was defined, default to size of first scene.
+				if (isNaN(this.width))			{ this.width = getSceneAt(0).contentWidth; }
+				if (isNaN(this.height))			{ this.height = getSceneAt(0).contentWidth; }
 				_rendering = true;
-				duration = durationInSeconds;
+				durationInSeconds = durationInSeconds;
 				PulseControl.freeze();
 				_start = PulseControl.getCurrentTime();
 				renderNextFrame();
@@ -46,7 +76,9 @@ package com.animoto.filmstrip
 		public function stopRendering():void {
 			if (_rendering) {
 				_rendering = false;
-				PulseControl.resume();
+				_buffer.reset();
+				bitmapScene.release();
+				PulseControl.resume(); // unfreezes time for animation engines
 				dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED) );
 			}
 		}
@@ -66,6 +98,9 @@ package com.animoto.filmstrip
 			if (done()) {
 				stopRendering();
 			}
+			else if (bufferMilliseconds==0) {
+				renderNextFrame();
+			}
 			else {
 				_buffer.delay = bufferMilliseconds;
 				_buffer.start();
@@ -78,11 +113,11 @@ package com.animoto.filmstrip
 		}
 		
 		protected function done():Boolean {
-			if (isNaN(duration)) {
+			if (isNaN(durationInSeconds)) {
 				return false;
 			}
 			var next:Number = PulseControl.getCurrentTime() + (1000/frameRate);
-			var end:Number = _start + duration*1000;
+			var end:Number = _start + durationInSeconds*1000;
 			return (next > end);
 		}
 	}

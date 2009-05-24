@@ -1,19 +1,22 @@
 package {
 	import com.animoto.filmstrip.FilmStrip;
-	import com.animoto.filmstrip.FilmStripScene;
+	import com.animoto.filmstrip.FilmStripEvent;
+	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
 	import filmstripexamples.Dice;
 	
+	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
-	import flash.text.TextField;
+	import flash.filters.DropShadowFilter;
 
 	[SWF(backgroundColor="#FFFFFF", frameRate="30")]
 	
 	public class FilmStripExample extends Sprite
 	{
-		private var t:TextField;
+		private var bitmap:Bitmap;
+		
 		public function FilmStripExample()
 		{
 			super();
@@ -22,8 +25,21 @@ package {
 			var dice:Dice = new Dice();
 			addChild(dice);
 			
-			var f:FilmStrip = new FilmStrip(new FilmStripScene(dice.scene));
+			bitmap = new Bitmap();
+			bitmap.scaleX = bitmap.scaleY = 0.33;
+			bitmap.filters = [new DropShadowFilter(4,45,0,0.25,5,5)];
+			addChild(bitmap);
+			
+			var f:FilmStrip = new FilmStrip(new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer));
+			f.addEventListener(FilmStripEvent.FRAME_RENDERED, frameRendered);
+			f.bufferMilliseconds = 1;
+			f.durationInSeconds = 1;
 			f.startRendering();
+		}
+		
+		private function frameRendered(event:FilmStripEvent):void {
+			bitmap.bitmapData = event.data;
+			bitmap.smoothing = true;
 		}
 	}
 }
