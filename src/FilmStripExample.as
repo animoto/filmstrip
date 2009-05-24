@@ -1,4 +1,7 @@
 package {
+	import com.animoto.filmstrip.FilmStrip;
+	import com.animoto.filmstrip.FilmStripScene;
+	
 	import filmstripexamples.Dice;
 	
 	import flash.display.Sprite;
@@ -16,8 +19,11 @@ package {
 			super();
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
-			var d:Dice = new Dice();
-			addChild(d);
+			var dice:Dice = new Dice();
+			addChild(dice);
+			
+			var f:FilmStrip = new FilmStrip(new FilmStripScene(dice.scene));
+			f.startRendering();
 		}
 	}
 }

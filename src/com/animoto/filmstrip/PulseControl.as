@@ -12,27 +12,25 @@ package com.animoto.filmstrip
 		private static var pulseShape: Shape = new Shape();
 		private static var listening: Boolean = false;
 		private static var frozen: Boolean = false;
-		private static var frameDuration: Number;
 		private static var dispatcher: EventDispatcher = new EventDispatcher();
 		
 		public function PulseControl()
 		{
 		}
 		
-		public static function freeze(frameRate:int=15):void {
+		public static function freeze():void {
 			pulseShape.removeEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
-			frameDuration = (1000/frameRate);
 			timer.pause();
 			frozen = true;
 		}
 		
-		public static function getCurrentTime():Number {
+		public static function getCurrentTime():int {
 			return timer.milliseconds;
 		}
 		
-		public static function advance():void {
+		public static function advanceTime(milliseconds:int):void {
 			if (listening && frozen) {
-				timer.milliseconds += frameDuration;
+				timer.milliseconds += milliseconds;
 				dispatchEnterFrame();
 			}
 		}

@@ -90,7 +90,7 @@ package {
 			b.x = 100;
 			b.y = 210;
 			b.addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void { 
-				PulseControl.advance(); 
+				PulseControl.advanceTime(1000/15); 
 			});
 			addChild(b);
 			

@@ -42,7 +42,7 @@ package caurina.transitions {
 
 	public class Tweener {
 	
-		private static var __tweener_controller__:PulseControl;	// Used to ensure the stage copy is always accessible (garbage collection)
+		private static var __tweener_controller__:PulseControl;	// FilmStrip patch
 		
 		private static var _engineExists:Boolean = false;		// Whether or not the engine is currently running
 		private static var _inited:Boolean = false;				// Whether or not the class has been initiated
@@ -943,8 +943,8 @@ package caurina.transitions {
 			_engineExists = true;
 			_tweenList = new Array();
 			
-			__tweener_controller__ = new PulseControl();
-			PulseControl.addEnterFrameListener(Tweener.onEnterFrame);
+			__tweener_controller__ = new PulseControl(); 				// FilmStrip patch
+			PulseControl.addEnterFrameListener(Tweener.onEnterFrame);	// FilmStrip patch
 			
 			_currentTimeFrame = 0;
 			updateTime();
@@ -958,7 +958,7 @@ package caurina.transitions {
 			_tweenList = null;
 			_currentTime = 0;
 			_currentTimeFrame = 0;
-			PulseControl.removeEnterFrameListener(Tweener.onEnterFrame);
+			PulseControl.removeEnterFrameListener(Tweener.onEnterFrame); // FilmStrip patch
 			__tweener_controller__ = null;
 		}
 	
@@ -966,7 +966,7 @@ package caurina.transitions {
 		 * Updates the time to enforce time grid-based updates.
 		 */
 		public static function updateTime():void {
-			_currentTime = PulseControl.getCurrentTime();
+			_currentTime = PulseControl.getCurrentTime();				// FilmStrip patch
 		}
 	
 		/**

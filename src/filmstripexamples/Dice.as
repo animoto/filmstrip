@@ -28,8 +28,8 @@ package filmstripexamples
 		public static var greyMaterial: MaterialObject3D;
 		public static var seedMaterial: MaterialObject3D;
 
+		public var scene: Scene3D;
 		protected var _camera:Camera3D;
-		protected var _scene: Scene3D;
 		protected var _viewport:Viewport3D;
 //		protected var _viewport:BitmapViewport3D;
 		protected var _renderer:BasicRenderEngine;
@@ -56,7 +56,7 @@ package filmstripexamples
 			_camera.zoom = 1;
 			_camera.focus = 1000;
 			//_camera.z = -1000;
-			_scene = new Scene3D();
+			scene = new Scene3D();
 			_light = new LightObject3D();
 			_light.z = -3000;
 			_light.x = 400;
@@ -97,10 +97,10 @@ package filmstripexamples
 			_floor.y = -50;
 			_floor.rotationX = 90;
 			_floor.rotationY = 90;
-			_scene.addChild(_floor);
+			scene.addChild(_floor);
 			
 			_holder = new DisplayObject3D();
-			_scene.addChild(_holder);
+			scene.addChild(_holder);
 			
 			_cube1 = new Cube(new MaterialsList({all:greyMaterial}), cubeSize, cubeSize, cubeSize, 4, 4, 4);
 			_cube1.x = -1500;
@@ -109,8 +109,8 @@ package filmstripexamples
 			_cube2.x = -600;
 			_cube2.y = 600;
 			
-//			_scene.addChild(_cube1);
-//			_scene.addChild(_cube2);
+//			scene.addChild(_cube1);
+//			scene.addChild(_cube2);
 			_holder.addChild(_cube1);
 			_holder.addChild(_cube2);
 			
@@ -171,7 +171,7 @@ package filmstripexamples
 		}
 		
 		protected function update(e:Event=null):void {
-			_renderer.renderScene(_scene, _camera, _viewport);
+			_renderer.renderScene(scene, _camera, _viewport);
 			_camera.lookAt(_floor);
 		}
 	}
