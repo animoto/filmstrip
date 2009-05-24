@@ -21,5 +21,9 @@ package com.animoto.filmstrip
 		public function render():void {
 			frameCallback(new BitmapData(100, 50, false, 0x33FFDD));
 		}
+		
+		public function destroy():void {
+			
+		}
 	}
 }
