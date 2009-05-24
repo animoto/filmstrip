@@ -1,7 +1,9 @@
 package com.animoto.filmstrip
 {
+	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	import com.animoto.filmstrip.scenes.IFilmStripScene;
 	
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
@@ -9,6 +11,9 @@ package com.animoto.filmstrip
 
 	public class FilmStrip extends EventDispatcher
 	{
+		public var captureMode:String = FilmStripCaptureMode.WHOLE_SCENE;
+		public var drawMode:String = FilmStripDrawMode.MATTE_SUBFRAMES;
+
 		public static var throwErrors: Boolean = true;
 		public static function error(message:String):void {
 			if (throwErrors)
@@ -22,25 +27,28 @@ package com.animoto.filmstrip
 		public var width: Number = NaN;
 		public var height: Number = NaN;
 		public var frameRate: int = 15;
+		public var motionBlur: Boolean = true;
 		public var durationInSeconds: Number = NaN;
 		public var transparent: Boolean = false;
 		public var backgroundColor: Number = 0xFFFFFF;
 		public var bufferMilliseconds: int = 0;
 		
 		public function get rendering(): Boolean {
-			return _rendering;
+			return _busy;
 		}
 		
-		protected var _start:Number;
-		protected var _rendering:Boolean;
-		protected var _buffer:Timer = new Timer(0, 1);
+		protected var _busy: Boolean = false;
+		protected var _startTime:Number;
+		protected var _currentTime:Number;
+		protected var _index: int;
+		protected var _buffer:Timer = new Timer(1, 1);
 		
 		public function FilmStrip(scene:IFilmStripScene)
 		{
 			super();
 			addScene( scene );
-			bitmapScene = new FilmStripBitmapScene(this, frameComplete);
-			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, renderNextFrame, false, 0, true);
+			bitmapScene = new FilmStripBitmapScene();
+			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, renderNextScene2, false, 0, true);
 		}
 		
 		public function addScene(scene:IFilmStripScene):void {
@@ -51,55 +59,65 @@ package com.animoto.filmstrip
 			return scenes[index] as IFilmStripScene;
 		}
 		
-		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
+		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, motionBlur:*=null, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
 			
 			if (!isNaN(width))					{ this.width = int(width); }
 			if (!isNaN(height))					{ this.height = int(height); }
 			if (!isNaN(frameRate))				{ this.frameRate = int(frameRate); }
 			if (!isNaN(durationInSeconds))		{ this.durationInSeconds = durationInSeconds; }
+			if (motionBlur!=null)				{ this.motionBlur = Boolean(motionBlur); }
 			if (transparent!=null)				{ this.transparent = Boolean(transparent); }
 			if (!isNaN(backgroundColor))		{ this.backgroundColor = backgroundColor; }
 			if (!isNaN(bufferMilliseconds))		{ this.bufferMilliseconds = int(bufferMilliseconds); }
 			
 			if (scenes!=null && scenes.length>0) {
+				
 				// If no size was defined, default to size of first scene.
 				if (isNaN(this.width))			{ this.width = getSceneAt(0).contentWidth; }
 				if (isNaN(this.height))			{ this.height = getSceneAt(0).contentWidth; }
-				_rendering = true;
-				durationInSeconds = durationInSeconds;
+				
+				if (_busy) {
+					stopRendering();
+				}
 				PulseControl.freeze();
-				_start = PulseControl.getCurrentTime();
-				renderNextFrame();
+				_startTime = _currentTime = PulseControl.getCurrentTime();
+				_index = 0;
+				_busy = true;
+				renderNextScene();
+			}
+			else {
+				error("Scene missing.");
 			}
 		}
 		
 		public function stopRendering():void {
-			if (_rendering) {
-				_rendering = false;
-				_buffer.reset();
-				bitmapScene.release();
-				PulseControl.resume(); // unfreezes time for animation engines
+			if (_busy) {
 				dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED) );
+				PulseControl.resume(); // unfreezes time for animation engines
 			}
+			bitmapScene.clearDisplay();
+			_buffer.reset();
+			if (_busy) {
+				try { (scenes[_index] as FilmStripScenePV3D).stopRendering(); }
+				catch (e:Error) { }
+			}
+			_index = 0;
+			_busy = false;
 		}
 		
 		public function destroy():void {
+			stopRendering();
 			scenes = null;
-			_buffer.removeEventListener(TimerEvent.TIMER_COMPLETE, renderNextFrame);
-			_buffer = null;
-			bitmapScene.destroy();
 			bitmapScene = null;
+			_buffer.removeEventListener(TimerEvent.TIMER_COMPLETE, renderNextScene);
+			_buffer = null;
 		}
 		
 		// -== Private Methods ==-
 		
-		protected function frameComplete(data:BitmapData):void {
-			dispatchEvent( new FilmStripEvent(FilmStripEvent.FRAME_RENDERED, data) );
-			if (done()) {
-				stopRendering();
-			}
-			else if (bufferMilliseconds==0) {
-				renderNextFrame();
+		protected function renderNextScene():void {
+			if (bufferMilliseconds==0) {
+				renderNextScene2();
 			}
 			else {
 				_buffer.delay = bufferMilliseconds;
@@ -107,17 +125,59 @@ package com.animoto.filmstrip
 			}
 		}
 		
-		protected function renderNextFrame(event:TimerEvent=null):void {
-			PulseControl.advanceTime( 1000 / frameRate );
-			bitmapScene.render();
+		protected function renderNextScene2(event:TimerEvent=null):void {
+			var scene:FilmStripScenePV3D = (scenes[_index] as FilmStripScenePV3D); // TODO: retype to interface or superclass
+			if (scene==null) {
+				error("Scene not valid.");
+				if (!throwErrors) {
+					sceneCompleteCallback();
+				}
+				return;
+			}
+			scene.init(this, sceneCompleteCallback, width, height);
+			scene.renderFrame(_currentTime);
+		}
+		
+		protected function sceneCompleteCallback():void {
+			if (!_busy) {
+				return;
+			}
+			if (++_index < scenes.length) {
+				renderNextScene();
+			}
+			else {
+				frameComplete();
+			}
+		}
+
+		protected function frameComplete():void {
+			// TODO: bitmap scene may need to be attached to stage to fully render correctly
+			var data:BitmapData;
+			if (bitmapScene.numChildren==1 && bitmapScene.getChildAt(0) is Bitmap) {
+				data = (bitmapScene.getChildAt(0) as Bitmap).bitmapData;
+			}
+			else {
+				data = new BitmapData(width, height, transparent, backgroundColor);
+				data.draw(bitmapScene);
+			}
+			dispatchEvent( new FilmStripEvent(FilmStripEvent.FRAME_RENDERED, data) );
+			
+			if (done()) { // TODO: be sure time is not left backed up on subframe
+				stopRendering();
+			}
+			else {
+				_currentTime += int(1000 / frameRate);
+				_index = 0;
+				renderNextScene();
+			}
 		}
 		
 		protected function done():Boolean {
 			if (isNaN(durationInSeconds)) {
 				return false;
 			}
-			var next:Number = PulseControl.getCurrentTime() + (1000/frameRate);
-			var end:Number = _start + durationInSeconds*1000;
+			var next:Number = _currentTime + (1000/frameRate);
+			var end:Number = _startTime + durationInSeconds*1000;
 			return (next > end);
 		}
 	}

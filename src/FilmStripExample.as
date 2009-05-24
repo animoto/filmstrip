@@ -11,7 +11,7 @@ package {
 	import flash.display.StageScaleMode;
 	import flash.filters.DropShadowFilter;
 
-	[SWF(backgroundColor="#FFFFFF", frameRate="30")]
+	[SWF(backgroundColor="#DDDDDD", frameRate="30")]
 	
 	public class FilmStripExample extends Sprite
 	{
@@ -32,6 +32,7 @@ package {
 			
 			var f:FilmStrip = new FilmStrip(new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer));
 			f.addEventListener(FilmStripEvent.FRAME_RENDERED, frameRendered);
+			f.backgroundColor = 0x330000;
 			f.bufferMilliseconds = 1;
 			f.durationInSeconds = 1;
 			f.startRendering();

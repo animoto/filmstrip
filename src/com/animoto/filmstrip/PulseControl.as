@@ -29,8 +29,12 @@ package com.animoto.filmstrip
 		}
 		
 		public static function advanceTime(milliseconds:int):void {
+			setTime(timer.milliseconds + milliseconds);
+		}
+		
+		public static function setTime(milliseconds:int):void {
 			if (listening && frozen) {
-				timer.milliseconds += milliseconds;
+				timer.milliseconds = milliseconds;
 				dispatchEnterFrame();
 			}
 		}
