@@ -12,7 +12,7 @@ package com.animoto.filmstrip
 	public class FilmStrip extends EventDispatcher
 	{
 		public var captureMode:String = FilmStripCaptureMode.WHOLE_SCENE;
-		public var drawMode:String = FilmStripDrawMode.MATTE_SUBFRAMES;
+		public var blurMode:String = FilmStripBlurMode.NONE;
 
 		public static var throwErrors: Boolean = true;
 		public static function error(message:String):void {
@@ -27,7 +27,6 @@ package com.animoto.filmstrip
 		public var width: Number = NaN;
 		public var height: Number = NaN;
 		public var frameRate: int = 15;
-		public var motionBlur: Boolean = true;
 		public var durationInSeconds: Number = NaN;
 		public var transparent: Boolean = false;
 		public var backgroundColor: Number = 0xFFFFFF;
@@ -48,7 +47,7 @@ package com.animoto.filmstrip
 			super();
 			addScene( scene );
 			bitmapScene = new FilmStripBitmapScene();
-			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, renderNextScene2, false, 0, true);
+			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, renderNextScene2);
 		}
 		
 		public function addScene(scene:IFilmStripScene):void {
@@ -59,13 +58,14 @@ package com.animoto.filmstrip
 			return scenes[index] as IFilmStripScene;
 		}
 		
-		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, motionBlur:*=null, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
+		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, blurMode:String=null, captureMode:String=null, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
 			
 			if (!isNaN(width))					{ this.width = int(width); }
 			if (!isNaN(height))					{ this.height = int(height); }
 			if (!isNaN(frameRate))				{ this.frameRate = int(frameRate); }
 			if (!isNaN(durationInSeconds))		{ this.durationInSeconds = durationInSeconds; }
-			if (motionBlur!=null)				{ this.motionBlur = Boolean(motionBlur); }
+			if (blurMode!=null)			{ this.blurMode = blurMode; }
+			if (captureMode!=null)				{ this.captureMode = captureMode; }
 			if (transparent!=null)				{ this.transparent = Boolean(transparent); }
 			if (!isNaN(backgroundColor))		{ this.backgroundColor = backgroundColor; }
 			if (!isNaN(bufferMilliseconds))		{ this.bufferMilliseconds = int(bufferMilliseconds); }

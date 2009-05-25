@@ -1,6 +1,6 @@
 package com.animoto.filmstrip
 {
-	import com.animoto.StopWatch;
+	import com.animoto.util.StopWatch;
 	
 	import flash.display.Shape;
 	import flash.events.Event;

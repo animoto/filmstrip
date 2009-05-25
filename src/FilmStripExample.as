@@ -33,7 +33,7 @@ package {
 			var f:FilmStrip = new FilmStrip(new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer));
 			f.addEventListener(FilmStripEvent.FRAME_RENDERED, frameRendered);
 			f.backgroundColor = 0x330000;
-			f.bufferMilliseconds = 1;
+			f.bufferMilliseconds = 100;
 			f.durationInSeconds = 1;
 			f.startRendering();
 		}

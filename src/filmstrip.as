@@ -8,8 +8,6 @@ package {
 	{
 		public function filmstrip()
 		{
-			new SelectiveBitmapDraw();
-			new SelectiveBitmapDraw3D();
 		}
 	}
 }

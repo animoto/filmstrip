@@ -2,6 +2,8 @@ package filmstripexamples
 {
 	import caurina.transitions.Tweener;
 	
+	import com.animoto.filmstrip.PulseControl;
+	
 	import flash.display.BlendMode;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -76,7 +78,7 @@ package filmstripexamples
 			
 			draw();
 			
-			addEventListener(Event.ENTER_FRAME, update, false, 9999);
+			PulseControl.addEnterFrameListener(update, false, 9999);
 			
 			// For Go3D version -- Ensures scene update occurs afer all animations.
 //			var pulse:UpdatePulse = new UpdatePulse();
@@ -171,6 +173,7 @@ package filmstripexamples
 		}
 		
 		protected function update(e:Event=null):void {
+			trace("dice update");
 			renderer.renderScene(scene, camera, viewport);
 			camera.lookAt(_floor);
 		}
