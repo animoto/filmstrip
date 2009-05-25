@@ -1,6 +1,5 @@
 package com.animoto.filmstrip
 {
-	import com.animoto.filmstrip.scenes.AbstractFilmStripScene;
 	import com.animoto.filmstrip.scenes.IFilmStripScene;
 	
 	import flash.display.Bitmap;
@@ -97,7 +96,7 @@ package com.animoto.filmstrip
 			bitmapScene.clearDisplay();
 			_buffer.reset();
 			if (_busy) {
-				try { (scenes[_index] as AbstractFilmStripScene).controller.stopRendering(); }
+				try { (scenes[_index] as IFilmStripScene).controller.stopRendering(); }
 				catch (e:Error) { }
 			}
 			_index = 0;
@@ -125,8 +124,8 @@ package com.animoto.filmstrip
 		}
 		
 		protected function buffered_renderNext(event:TimerEvent=null):void {
-			var scene:AbstractFilmStripScene = (scenes[_index] as AbstractFilmStripScene);
-			if (scene==null || !(scene is IFilmStripScene)) {
+			var scene:IFilmStripScene = (scenes[_index] as IFilmStripScene);
+			if (scene==null) {
 				error("Scene not valid.");
 				if (!throwErrors) {
 					sceneCompleteCallback();

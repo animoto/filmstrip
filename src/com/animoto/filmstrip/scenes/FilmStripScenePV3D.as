@@ -1,29 +1,31 @@
 package com.animoto.filmstrip.scenes
 {
-	import com.animoto.filmstrip.FilmStrip;
-	
-	import flash.display.Bitmap;
-	import flash.display.BitmapData;
-	
 	import org.papervision3d.core.proto.CameraObject3D;
 	import org.papervision3d.core.proto.SceneObject3D;
-	import org.papervision3d.events.RendererEvent;
 	import org.papervision3d.render.BasicRenderEngine;
 	import org.papervision3d.view.Viewport3D;
 	
-	public class FilmStripScenePV3D extends AbstractFilmStripScene implements IFilmStripScene
+	public class FilmStripScenePV3D extends FilmStripSceneBase implements IFilmStripScene
 	{
+		
+		
 		public var scene:SceneObject3D;
 		public var camera:CameraObject3D;
 		public var viewport:Viewport3D;
 		public var renderer:BasicRenderEngine;
 		public var viewportLayersToRender:Array;
 		
-		public function get actualContentWidth():int {
+		/**
+		 * Required by IFilmStripScene, provide the scene's actual size.
+		 */
+		override public function get actualContentWidth():int {
 			return viewport.width;
 		}
 		
-		public function get actualContentHeight():int {
+		/**
+		 * Required by IFilmStripScene, provide the scene's actual size.
+		 */
+		override public function get actualContentHeight():int {
 			return viewport.height;
 		}
 		
