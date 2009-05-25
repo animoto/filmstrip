@@ -9,6 +9,8 @@ package {
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
+	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.filters.DropShadowFilter;
 
 	[SWF(backgroundColor="#DDDDDD", frameRate="30")]
@@ -16,25 +18,41 @@ package {
 	public class FilmStripExample extends Sprite
 	{
 		private var bitmap:Bitmap;
+		private var dice:Dice;
 		
 		public function FilmStripExample()
 		{
 			super();
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
-			var dice:Dice = new Dice();
+			dice = new Dice();
 			addChild(dice);
+			//start();
+			stage.addEventListener(MouseEvent.CLICK, start);
+		}
+		
+		private function start(event:Event=null): void {
 			
 			bitmap = new Bitmap();
-			bitmap.scaleX = bitmap.scaleY = 0.33;
+			bitmap.scaleX = bitmap.scaleY = 0.25;
+			bitmap.x = bitmap.y = 5;
 			bitmap.filters = [new DropShadowFilter(4,45,0,0.25,5,5)];
 			addChild(bitmap);
 			
 			var f:FilmStrip = new FilmStrip(new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer));
 			f.addEventListener(FilmStripEvent.FRAME_RENDERED, frameRendered);
 			f.backgroundColor = 0x330000;
-			f.bufferMilliseconds = 100;
-			f.durationInSeconds = 1;
+			f.bufferMilliseconds = 1;
+			f.durationInSeconds = .5;
+			f.frameRate = 30;
+			
+			f.bitmapScene.graphics.lineStyle(1, f.backgroundColor, 1);
+			f.bitmapScene.graphics.drawRect(0, 0, dice.viewport.width, dice.viewport.height);
+			f.bitmapScene.scaleX = f.bitmapScene.scaleY = 0.25;
+			f.bitmapScene.x = 5;
+			f.bitmapScene.y = 250;
+			addChild(f.bitmapScene);
+			
 			f.startRendering();
 		}
 		

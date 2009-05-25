@@ -45,8 +45,8 @@ package
 			setup_scene();
 			
 			// Uncomment a test
-			setup_many_at_top_level();
-//			setup_tree();
+//			setup_many_at_top_level();
+			setup_tree();
 			
 			reset();
 		}

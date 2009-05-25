@@ -22,6 +22,10 @@
 package com.mosesSupposes.util
 {
 	import flash.display.BitmapData;
+	import flash.display.IBitmapDrawable;
+	import flash.geom.ColorTransform;
+	import flash.geom.Matrix;
+	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
 	/**
@@ -33,13 +37,43 @@ package com.mosesSupposes.util
 	public class SelectiveDrawBase
 	{
 		public var bitmapData:BitmapData;
+		public var drawSource:IBitmapDrawable;
 		
 		protected var locked:Dictionary = new Dictionary(true);
 		protected var toggled:Dictionary = new Dictionary(true);
 		
-		public function SelectiveDrawBase(bitmapData:BitmapData)
+		public function SelectiveDrawBase(bitmapData:BitmapData, drawSource:IBitmapDrawable)
 		{
 			this.bitmapData = bitmapData;
+			this.drawSource = drawSource;
+		}
+		
+		/**
+		 * Full draw cycle including toggle, capture, and restore.
+		 * 
+		 * @param selectiveChildren		Objects to leave visible for the capture, others are turned off.
+		 * @param matrix				Param passed to BitmapData.draw().
+		 * @param colorTransform		Param passed to BitmapData.draw().
+		 * @param blendMode				Param passed to BitmapData.draw().
+		 * @param clipRect				Param passed to BitmapData.draw().
+		 * @param smoothing				Param passed to BitmapData.draw().
+		 * @return 
+		 */
+		public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
+			var doRestore:Boolean = manualPreDraw(selectiveChildren);
+			bitmapData.draw(drawSource, matrix, colorTransform, blendMode, clipRect, smoothing);
+			if (doRestore) {
+				manualPostDraw();
+			}
+			return bitmapData;
+		}
+		
+		public function manualPreDraw(selectiveChildren:Array):Boolean {
+			return false;
+		}
+		
+		public function manualPostDraw(redrawAfter:Boolean=true):void {
+			restore();
 		}
 		
 		protected function setParents(selectiveChildren:Array, topNode:Object):void {

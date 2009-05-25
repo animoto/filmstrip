@@ -1,5 +1,7 @@
 package com.animoto.filmstrip.scenes
 {
+	import com.animoto.filmstrip.FilmStripSceneController;
+	
 	public interface IFilmStripScene
 	{
 		function get controller(): FilmStripSceneController;

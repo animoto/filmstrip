@@ -4,14 +4,10 @@ package filmstripexamples
 	
 	import com.animoto.filmstrip.PulseControl;
 	
-	import flash.display.BlendMode;
 	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.filters.BlurFilter;
 	
 	import org.papervision3d.cameras.Camera3D;
-	import org.papervision3d.core.effects.BitmapLayerEffect;
-	import org.papervision3d.core.effects.utils.BitmapClearMode;
 	import org.papervision3d.core.proto.LightObject3D;
 	import org.papervision3d.core.proto.MaterialObject3D;
 	import org.papervision3d.materials.shadematerials.FlatShadeMaterial;
@@ -23,6 +19,7 @@ package filmstripexamples
 	import org.papervision3d.scenes.Scene3D;
 	import org.papervision3d.view.Viewport3D;
 	import org.papervision3d.view.layer.BitmapEffectLayer;
+	import org.papervision3d.view.layer.ViewportLayer;
 	
 	public class Dice extends Sprite
 	{
@@ -43,6 +40,8 @@ package filmstripexamples
 		protected var _bel0: BitmapEffectLayer;
 		protected var _bel1: BitmapEffectLayer;
 		protected var _bel2: BitmapEffectLayer;
+		protected var _cube1Layer: ViewportLayer;
+		protected var _cube2Layer: ViewportLayer;
 		
 		public function Dice()
 		{
@@ -116,7 +115,12 @@ package filmstripexamples
 			_holder.addChild(_cube1);
 			_holder.addChild(_cube2);
 			
+			_cube1Layer = viewport.getChildLayer(_cube1, true, false);
+			_cube2Layer = viewport.getChildLayer(_cube2, true, false);
+			camera.lookAt(_floor);
+			renderer.renderScene(scene, camera, viewport);
 			
+			/* 
 			// BitmapEffectLayers
 			_bel0 = new BitmapEffectLayer(viewport, viewport.width, viewport.height, true, 0x0, BitmapClearMode.CLEAR_PRE, false, true);
 			_bel0.addDisplayObject3D(_holder);
@@ -138,9 +142,9 @@ package filmstripexamples
 			viewport.containerSprite.addLayer(_bel0);
 //			viewport.containerSprite.addLayer(_bel1);
 //			viewport.containerSprite.addLayer(_bel2);
-			trace(_bel1.effects.length);
-			trace(_bel2.effects.length);
-			
+			 */
+			 
+			 
 			Tweener.addTween(_cube1, {x:100, z:100, rotationX:360, time:1.7, transition:"easeoutcirc"});
 			Tweener.addTween(_cube1, {rotationY:180, rotationZ:-180, y:cubeSize/2, time:1.7, transition:"easeoutbounce"});
 			
@@ -173,9 +177,11 @@ package filmstripexamples
 		}
 		
 		protected function update(e:Event=null):void {
-			trace("dice update");
-			renderer.renderScene(scene, camera, viewport);
 			camera.lookAt(_floor);
+			renderer.renderScene(scene, camera, viewport);
+			
+			// PROBLEM WITH PAPERVISION: Camera is not updated during renderLayers which makes it essentially unusable.
+			//renderer.renderLayers(scene, camera, viewport, [/* _cube1Layer, */ _cube2Layer]);
 		}
 	}
 }

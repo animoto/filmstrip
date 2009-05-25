@@ -30,7 +30,6 @@ package com.mosesSupposes.util
 	import org.papervision3d.core.proto.CameraObject3D;
 	import org.papervision3d.core.proto.DisplayObjectContainer3D;
 	import org.papervision3d.core.proto.SceneObject3D;
-	import org.papervision3d.core.render.IRenderEngine;
 	import org.papervision3d.objects.DisplayObject3D;
 	import org.papervision3d.render.BasicRenderEngine;
 	import org.papervision3d.view.Viewport3D;
@@ -47,13 +46,12 @@ package com.mosesSupposes.util
 	 */
 	public class SelectiveBitmapDraw3D extends SelectiveDrawBase
 	{
+		public var topContainer:DisplayObjectContainer3D;
 		public var scene:SceneObject3D;
 		public var camera:CameraObject3D;
 		public var viewport:Viewport3D;
-		public var renderer:IRenderEngine;
+		public var renderer:BasicRenderEngine;
 		public var viewportLayersToRender:Array;
-		public var drawSource:IBitmapDrawable;
-		public var topContainer:DisplayObjectContainer3D;
 		
 		/**
 		 * Constructor. 
@@ -67,16 +65,15 @@ package com.mosesSupposes.util
 		 * 									if it's a BasicRenderEngine. 
 		 * 
 		 */
-		public function SelectiveBitmapDraw3D(bitmapData:BitmapData, scene:SceneObject3D, camera:CameraObject3D, viewport:Viewport3D, renderer:IRenderEngine, viewportLayersToRender:Array=null)
+		public function SelectiveBitmapDraw3D(bitmapData:BitmapData, scene:SceneObject3D, camera:CameraObject3D, viewport:Viewport3D, renderer:BasicRenderEngine, viewportLayersToRender:Array=null)
 		{
-			super(bitmapData);
+			super(bitmapData, viewport as IBitmapDrawable);
+			topContainer = scene;
 			this.scene = scene;
 			this.camera = camera;
 			this.viewport = viewport;
 			this.renderer = renderer;
 			this.viewportLayersToRender = viewportLayersToRender;
-			drawSource = viewport;
-			topContainer = scene;
 		}
 		
 		/**
@@ -93,12 +90,8 @@ package com.mosesSupposes.util
 		 * @param smoothing				Param passed to BitmapData.draw().
 		 * @return 
 		 */
-		public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):void {
-			var doRestore:Boolean = manualPreDraw(selectiveChildren);
-			bitmapData.draw(drawSource, matrix, colorTransform, blendMode, clipRect, smoothing);
-			if (doRestore) {
-				manualPostDraw();
-			}
+		override public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
+			return super.draw(selectiveChildren, matrix, colorTransform, blendMode, clipRect, smoothing);
 		}
 		
 		// -== Advanced Methods ==-
@@ -111,12 +104,11 @@ package com.mosesSupposes.util
 		 * re-rendered if any objects were toggled, to prepare it for capture.</p>
 		 * 
 		 * @param selectiveChildren		Objects to leave visible for the capture, others are turned off.
-		 * @param container				Top-level container of the scene to capture.
 		 * 
 		 * @return 						If false no objects were toggled off, which means you don't need
 		 * 								to call manualPostDraw().
 		 */
-		public function manualPreDraw(selectiveChildren:Array):Boolean {
+		override public function manualPreDraw(selectiveChildren:Array):Boolean {
 			super.setParents(selectiveChildren, topContainer);
 			var r:Boolean = (toggleChildren(topContainer) > 0);
 			if (r) {
@@ -128,9 +120,10 @@ package com.mosesSupposes.util
 		/**
 		 * (Advanced) If you used manualPreDraw() this restores visibility of toggled objects, then re-renders the 3D scene.
 		 */
-		public function manualPostDraw():void {
-			super.restore();
-			doRender();
+		override public function manualPostDraw(redrawAfter:Boolean=true):void {
+			super.manualPostDraw();
+			if (redrawAfter)
+				doRender();
 		}
 		
 		// -== Private Methods ==-
@@ -165,8 +158,8 @@ package com.mosesSupposes.util
 		 * Renders 3D scene.
 		 */
 		protected function doRender():void {
-			if (viewportLayersToRender!=null && renderer is BasicRenderEngine) {
-				(renderer as BasicRenderEngine).renderLayers(scene, camera, viewport, viewportLayersToRender);
+			if (viewportLayersToRender!=null) {
+				renderer.renderLayers(scene, camera, viewport, viewportLayersToRender);
 			}
 			else {
 				renderer.renderScene(scene, camera, viewport);

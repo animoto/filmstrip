@@ -40,7 +40,6 @@ package com.mosesSupposes.util
 	 */
 	public class SelectiveBitmapDraw extends SelectiveDrawBase
 	{
-		public var drawSource:IBitmapDrawable;
 		public var topContainer:DisplayObjectContainer;
 		
 		/**
@@ -51,8 +50,7 @@ package com.mosesSupposes.util
 		 */
 		public function SelectiveBitmapDraw(bitmapData:BitmapData, source:DisplayObjectContainer)
 		{
-			super(bitmapData);
-			this.drawSource = source as IBitmapDrawable;
+			super(bitmapData, source as IBitmapDrawable);
 			this.topContainer = source;
 		}
 		
@@ -67,17 +65,14 @@ package com.mosesSupposes.util
 		 * @param smoothing				Param passed to BitmapData.draw().
 		 * @return 
 		 */
-		public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
-			var doRestore:Boolean = manualPreDraw(selectiveChildren);
-			bitmapData.draw(drawSource, matrix, colorTransform, blendMode, clipRect, smoothing);
-			if (doRestore) {
-				manualPostDraw();
-			}
-			return bitmapData;
+		override public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
+			return super.draw(selectiveChildren, matrix, colorTransform, blendMode, clipRect, smoothing);
 		}
 		
+		// -== Advanced Methods ==-
+		
 		/**
-		 * Performs toggling off of objects not in the <code>selectiveChildren</code> Array.
+		 * (Advanced) Performs toggling off of objects not in the <code>selectiveChildren</code> Array.
 		 * 
 		 * <p>You'd only want to use this method if you aren't using this class' draw() method,
 		 * and after doing your own capture you should call manualPostDraw().</p>
@@ -87,16 +82,16 @@ package com.mosesSupposes.util
 		 * @return 						If false no objects were toggled off, which means you don't need
 		 * 								to call manualPostDraw().
 		 */
-		public function manualPreDraw(selectiveChildren:Array):Boolean {
+		override public function manualPreDraw(selectiveChildren:Array):Boolean {
 			super.setParents(selectiveChildren, topContainer);
 			return (toggleChildren(topContainer) > 0);
 		}
 		
 		/**
-		 * If you used manualPreDraw() this restores visibility of toggled objects.
+		 * (Advanced) If you used manualPreDraw() this restores visibility of toggled objects.
 		 */
-		public function manualPostDraw():void {
-			super.restore();
+		override public function manualPostDraw(redrawAfter:Boolean=true):void {
+			super.manualPostDraw();
 		}
 		
 		// -== Private Methods ==-

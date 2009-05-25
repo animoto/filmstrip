@@ -25,14 +25,19 @@ package com.animoto.filmstrip
 		public var height: Number = NaN;
 		public var frameRate: int = 15;
 		public var durationInSeconds: Number = NaN;
-		public var captureMode:String = FilmStripCaptureMode.WHOLE_SCENE;
-		public var blurMode:String = FilmStripBlurMode.NONE;
+		public var captureMode:String = FilmStripCaptureMode.EACH_OBJECT;
+		public var blurMode:String = FilmStripBlurMode.SPLIT_SUBFRAMES;
 		public var transparent: Boolean = false;
 		public var backgroundColor: Number = 0xFFFFFF;
 		public var bufferMilliseconds: int = 0;
+		public var subframeBufferMilliseconds: int = 0;
 		
 		public function get rendering(): Boolean {
 			return _busy;
+		}
+		
+		public function get frameDuration(): int {
+			return int(1000 / frameRate);
 		}
 		
 		protected var _busy: Boolean = false;
@@ -46,7 +51,7 @@ package com.animoto.filmstrip
 			super();
 			addScene( scene );
 			bitmapScene = new FilmStripBitmapScene();
-			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, buffered_renderNext);
+			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, doRenderNext);
 		}
 		
 		public function addScene(scene:IFilmStripScene):void {
@@ -79,13 +84,16 @@ package com.animoto.filmstrip
 				
 			// If no size was defined, default to size of first scene.
 			if (isNaN(this.width))			{ this.width = getSceneAt(0).actualContentWidth; }
-			if (isNaN(this.height))			{ this.height = getSceneAt(0).actualContentWidth; }
+			if (isNaN(this.height))			{ this.height = getSceneAt(0).actualContentHeight; }
 			
 			PulseControl.freeze();
 			_startTime = _currentTime = PulseControl.getCurrentTime();
+			if (blurMode!=FilmStripBlurMode.NONE) {
+				_currentTime += frameDuration; // Shave a frame, to ensure blur has change to work with in case animations are at beginning.
+			}
 			_index = 0;
 			_busy = true;
-			renderNextScene();
+			doRenderNext();
 		}
 		
 		public function stopRendering():void {
@@ -115,7 +123,7 @@ package com.animoto.filmstrip
 		
 		protected function renderNextScene():void {
 			if (bufferMilliseconds==0) {
-				buffered_renderNext();
+				doRenderNext();
 			}
 			else {
 				_buffer.delay = bufferMilliseconds;
@@ -123,7 +131,7 @@ package com.animoto.filmstrip
 			}
 		}
 		
-		protected function buffered_renderNext(event:TimerEvent=null):void {
+		protected function doRenderNext(event:TimerEvent=null):void {
 			var scene:IFilmStripScene = (scenes[_index] as IFilmStripScene);
 			if (scene==null) {
 				error("Scene not valid.");
@@ -131,6 +139,9 @@ package com.animoto.filmstrip
 					sceneCompleteCallback();
 				}
 				return;
+			}
+			if (_index==0) {
+				bitmapScene.clearDisplay();
 			}
 			scene.controller.init(this, sceneCompleteCallback);
 			scene.controller.renderFrame(_currentTime);
@@ -151,20 +162,16 @@ package com.animoto.filmstrip
 		protected function frameComplete():void {
 			// TODO: bitmap scene may need to be attached to stage to fully render correctly
 			var data:BitmapData;
-			if (bitmapScene.numChildren==1 && bitmapScene.getChildAt(0) is Bitmap) {
-				data = (bitmapScene.getChildAt(0) as Bitmap).bitmapData;
-			}
-			else {
-				data = new BitmapData(width, height, transparent, backgroundColor);
-				data.draw(bitmapScene);
-			}
+			data = new BitmapData(width, height, transparent, backgroundColor);
+			data.draw(bitmapScene);
+			
 			dispatchEvent( new FilmStripEvent(FilmStripEvent.FRAME_RENDERED, data) );
 			
 			if (done()) { // TODO: be sure time is not left backed up on subframe
 				stopRendering();
 			}
 			else {
-				_currentTime += int(1000 / frameRate);
+				_currentTime += frameDuration;
 				_index = 0;
 				renderNextScene();
 			}
