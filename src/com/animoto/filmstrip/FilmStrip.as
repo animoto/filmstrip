@@ -1,6 +1,6 @@
 package com.animoto.filmstrip
 {
-	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
+	import com.animoto.filmstrip.scenes.AbstractFilmStripScene;
 	import com.animoto.filmstrip.scenes.IFilmStripScene;
 	
 	import flash.display.Bitmap;
@@ -11,8 +11,6 @@ package com.animoto.filmstrip
 
 	public class FilmStrip extends EventDispatcher
 	{
-		public var captureMode:String = FilmStripCaptureMode.WHOLE_SCENE;
-		public var blurMode:String = FilmStripBlurMode.NONE;
 
 		public static var throwErrors: Boolean = true;
 		public static function error(message:String):void {
@@ -28,6 +26,8 @@ package com.animoto.filmstrip
 		public var height: Number = NaN;
 		public var frameRate: int = 15;
 		public var durationInSeconds: Number = NaN;
+		public var captureMode:String = FilmStripCaptureMode.WHOLE_SCENE;
+		public var blurMode:String = FilmStripBlurMode.NONE;
 		public var transparent: Boolean = false;
 		public var backgroundColor: Number = 0xFFFFFF;
 		public var bufferMilliseconds: int = 0;
@@ -47,7 +47,7 @@ package com.animoto.filmstrip
 			super();
 			addScene( scene );
 			bitmapScene = new FilmStripBitmapScene();
-			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, renderNextScene2);
+			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, buffered_renderNext);
 		}
 		
 		public function addScene(scene:IFilmStripScene):void {
@@ -59,35 +59,34 @@ package com.animoto.filmstrip
 		}
 		
 		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, blurMode:String=null, captureMode:String=null, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
+			if (_busy) {
+				stopRendering();
+			}
 			
 			if (!isNaN(width))					{ this.width = int(width); }
 			if (!isNaN(height))					{ this.height = int(height); }
 			if (!isNaN(frameRate))				{ this.frameRate = int(frameRate); }
 			if (!isNaN(durationInSeconds))		{ this.durationInSeconds = durationInSeconds; }
-			if (blurMode!=null)			{ this.blurMode = blurMode; }
+			if (blurMode!=null)					{ this.blurMode = blurMode; }
 			if (captureMode!=null)				{ this.captureMode = captureMode; }
 			if (transparent!=null)				{ this.transparent = Boolean(transparent); }
 			if (!isNaN(backgroundColor))		{ this.backgroundColor = backgroundColor; }
 			if (!isNaN(bufferMilliseconds))		{ this.bufferMilliseconds = int(bufferMilliseconds); }
 			
-			if (scenes!=null && scenes.length>0) {
-				
-				// If no size was defined, default to size of first scene.
-				if (isNaN(this.width))			{ this.width = getSceneAt(0).contentWidth; }
-				if (isNaN(this.height))			{ this.height = getSceneAt(0).contentWidth; }
-				
-				if (_busy) {
-					stopRendering();
-				}
-				PulseControl.freeze();
-				_startTime = _currentTime = PulseControl.getCurrentTime();
-				_index = 0;
-				_busy = true;
-				renderNextScene();
-			}
-			else {
+			if (scenes==null || (scenes!=null && scenes.length==0)) {
 				error("Scene missing.");
+				return;
 			}
+				
+			// If no size was defined, default to size of first scene.
+			if (isNaN(this.width))			{ this.width = getSceneAt(0).actualContentWidth; }
+			if (isNaN(this.height))			{ this.height = getSceneAt(0).actualContentWidth; }
+			
+			PulseControl.freeze();
+			_startTime = _currentTime = PulseControl.getCurrentTime();
+			_index = 0;
+			_busy = true;
+			renderNextScene();
 		}
 		
 		public function stopRendering():void {
@@ -98,7 +97,7 @@ package com.animoto.filmstrip
 			bitmapScene.clearDisplay();
 			_buffer.reset();
 			if (_busy) {
-				try { (scenes[_index] as FilmStripScenePV3D).stopRendering(); }
+				try { (scenes[_index] as AbstractFilmStripScene).controller.stopRendering(); }
 				catch (e:Error) { }
 			}
 			_index = 0;
@@ -117,7 +116,7 @@ package com.animoto.filmstrip
 		
 		protected function renderNextScene():void {
 			if (bufferMilliseconds==0) {
-				renderNextScene2();
+				buffered_renderNext();
 			}
 			else {
 				_buffer.delay = bufferMilliseconds;
@@ -125,17 +124,17 @@ package com.animoto.filmstrip
 			}
 		}
 		
-		protected function renderNextScene2(event:TimerEvent=null):void {
-			var scene:FilmStripScenePV3D = (scenes[_index] as FilmStripScenePV3D); // TODO: retype to interface or superclass
-			if (scene==null) {
+		protected function buffered_renderNext(event:TimerEvent=null):void {
+			var scene:AbstractFilmStripScene = (scenes[_index] as AbstractFilmStripScene);
+			if (scene==null || !(scene is IFilmStripScene)) {
 				error("Scene not valid.");
 				if (!throwErrors) {
 					sceneCompleteCallback();
 				}
 				return;
 			}
-			scene.init(this, sceneCompleteCallback, width, height);
-			scene.renderFrame(_currentTime);
+			scene.controller.init(this, sceneCompleteCallback);
+			scene.controller.renderFrame(_currentTime);
 		}
 		
 		protected function sceneCompleteCallback():void {

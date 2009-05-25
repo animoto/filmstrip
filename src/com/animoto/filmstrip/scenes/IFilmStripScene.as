@@ -2,7 +2,7 @@ package com.animoto.filmstrip.scenes
 {
 	public interface IFilmStripScene
 	{
-		function get contentWidth():int;
-		function get contentHeight():int;
+		function get actualContentWidth():int;
+		function get actualContentHeight():int;
 	}
 }
