@@ -8,6 +8,8 @@ package com.animoto.filmstrip
 	import flash.display.Sprite;
 	import flash.events.TimerEvent;
 	import flash.filters.BlurFilter;
+	import flash.geom.ColorTransform;
+	import flash.geom.Point;
 	import flash.utils.Timer;
 	
 	public class MotionBlurController
@@ -21,11 +23,17 @@ package com.animoto.filmstrip
 		
 		public static var maxSubframes:int = 16;
 		
-		public static var millisecondsPerSubframe:int = 2;
+		public static var millisecondsPerSubframe:int = 1;
 		
-		public static var subframeBlendMode: String = BlendMode.NORMAL;
+		public static var subframeBlendMode: String = BlendMode.LIGHTEN;
 
-		public static var peakSubframeAlpha: Number = 0.5;
+		public static var peakSubframeAlpha: Number = 0.75;
+		
+		public static var applyBoxBlur: Boolean = true;
+		
+		public static var boxBlurRange: Point = new Point(1.5, 3);
+		
+		public static var boxBlurMultiplier: Number = 0.1;
 		
 		/**
 		 * For now set to -1 (trailing blur) or 1 (blur in front of motion).
@@ -45,6 +53,7 @@ package com.animoto.filmstrip
 		protected var subframes: int;
 		protected var index: int;
 		protected var delay: int;
+		protected var captureSubframe: Function = captureSubframeSplit;
 		
 		public function MotionBlurController(controller:FilmStripSceneController, target:Object)
 		{
@@ -60,6 +69,8 @@ package com.animoto.filmstrip
 			peakSubframeAlpha = Math.max(1, peakSubframeAlpha);
 			// For now offset is limited to -1 or 1.
 			offset = (offset > 0 ? 1 : -1);
+			if (controller.filmStrip.blurMode == FilmStripBlurMode.MATTE_SUBFRAMES)
+				captureSubframe = captureSubframeMatte;
 		}
 		
 		public function render():void {
@@ -74,7 +85,7 @@ package com.animoto.filmstrip
 			// estimate how many subframes we'll need based on amount of animation and capture primary frame.
 			PulseControl.setTime(controller.currentTime);
 			calculateSubframes();
-			capture();
+			capturePrimaryFrame();
 			
 			if (delay > 0) {
 				buffer.reset();
@@ -90,23 +101,18 @@ package com.animoto.filmstrip
 				return;
 			}
 			var time:int = controller.currentTime + (millisecondsPerSubframe * index * offset);
-			if (++index>subframes || subframes<threshold || time<0) {
+			index++;
+			var done:Boolean = (index>subframes || subframes<threshold || time<0);
+			if (done) {
 				complete();
 				return;
 			}
 			
+			// Set subframe time
 			PulseControl.setTime(controller.currentTime + (millisecondsPerSubframe * index * offset));
-			var bitmap:Bitmap = capture();
-			bitmap.blendMode = subframeBlendMode;
-			var maxAlpha: Number = Math.max(0.1, 1 - (1/subframes)*index);
-			bitmap.alpha = (maxAlpha - ((maxAlpha / subframes) * (index - 1))) * peakSubframeAlpha;
-			var box:Number = (Math.min(index*0.1 + 1.5, 3));
-			bitmap.filters = [ new BlurFilter(box, box, 1) ];
-
-			if (index==2) {
-				(container.getChildAt(0) as Bitmap).filters = [ new BlurFilter(box, box, 1) ];
-				controller.firstSubframeComplete(container);
-			}
+			
+			captureSubframe();
+			controller.subframeComplete(this, index, false);
 			
 			if (delay > 0) {
 				buffer.reset();
@@ -124,23 +130,58 @@ package com.animoto.filmstrip
 			buffer.reset();
 			buffer.removeEventListener(TimerEvent.TIMER_COMPLETE, nextSubFrame);
 			buffer = null;
-			drawUtil.manualPostDraw(false); // safety, releases references without rerendering 3d scene
-			drawUtil = null;
+			if (drawUtil!=null) {
+				drawUtil.manualPostDraw(false); // safety, releases references without rerendering 3d scene
+				drawUtil = null;
+			}
 		}
 		
-		protected function capture():Bitmap {
+		protected function capturePrimaryFrame():void {
 			refreshDrawUtil();
-			if (index==0) {
-				drawUtil.manualPreDraw([target]); // Toggles other objects' visibility off temporarily and rerenders 3d scene. Restored in complete().
+			drawUtil.manualPreDraw([target]); // Toggles other objects' visibility off temporarily and rerenders 3d scene. Restored in complete().
+			drawUtil.bitmapData.draw(drawUtil.drawSource);
+			container.addChild(new Bitmap(drawUtil.bitmapData));
+		}
+		
+		protected function currentAlpha():Number {
+			var maxalpha: Number = Math.max(0.1, 1 - (1/subframes)*index);
+			return (maxalpha - ((maxalpha / subframes) * (index - 1))) * peakSubframeAlpha;
+		}
+		
+		protected function currentBoxBlur():BlurFilter {
+			var boxamt:Number = (Math.min(index * boxBlurMultiplier + boxBlurRange.x, boxBlurRange.y));
+			return new BlurFilter(boxamt, boxamt, 1);
+		}
+		
+		protected function captureSubframeSplit():void {
+			controller.scene.redrawScene();
+			refreshDrawUtil();
+			drawUtil.bitmapData.draw(drawUtil.drawSource);
+			var bitmap:Bitmap = new Bitmap(drawUtil.bitmapData);
+			bitmap.blendMode = subframeBlendMode;
+			bitmap.alpha = currentAlpha();
+			if (applyBoxBlur) {
+				var boxblur:BlurFilter = currentBoxBlur();
+				bitmap.filters = [ boxblur ];
+				if (index==2)
+					(container.getChildAt(0) as Bitmap).filters = [ boxblur ];
+			}
+			container.addChild(bitmap);
+			drawUtil.bitmapData = null;
+		}
+		
+		protected function captureSubframeMatte():void {
+			controller.scene.redrawScene();
+			var ct:ColorTransform = new ColorTransform(1, 1, 1, currentAlpha());
+			if (applyBoxBlur) {
+				var bd:BitmapData = newBitmapData();
+				bd.draw(drawUtil.drawSource);
+				bd.applyFilter(bd, drawUtil.bitmapData.rect, new Point(0,0), currentBoxBlur());
+				drawUtil.bitmapData.draw(bd, null, ct, subframeBlendMode);
 			}
 			else {
-				controller.scene.redrawScene();
+				drawUtil.bitmapData.draw(drawUtil.drawSource, null, ct, subframeBlendMode);
 			}
-			drawUtil.bitmapData.draw(drawUtil.drawSource);
-			var b:Bitmap = new Bitmap(drawUtil.bitmapData);
-			drawUtil.bitmapData = null;
-			container.addChild(b);
-			return b;
 		}
 		
 		protected function calculateSubframes():void {
@@ -160,7 +201,7 @@ package com.animoto.filmstrip
 		
 		protected function complete():void {
 			drawUtil.manualPostDraw(); // Passing false to avoid rerendering the scene, which isn't necessary here
-			controller.motionBlurComplete(container);
+			controller.subframeComplete(this, index, true);
 		}
 
 		
@@ -168,13 +209,16 @@ package com.animoto.filmstrip
 		 * A single drawUtil is reused to cut down on object creation.
 		 */
 		protected function refreshDrawUtil():void {
-			var bd:BitmapData = new BitmapData(controller.filmStrip.width, controller.filmStrip.height, true, 0x0);
 			if (drawUtil==null) {
-				drawUtil = controller.scene.getSelectiveDrawUtil(bd);
+				drawUtil = controller.scene.getSelectiveDrawUtil(newBitmapData());
 			}
 			else {
-				drawUtil.bitmapData = bd;
+				drawUtil.bitmapData = newBitmapData();
 			}
+		}
+		
+		protected function newBitmapData():BitmapData {
+			return new BitmapData(controller.filmStrip.width, controller.filmStrip.height, true, 0x0);
 		}
 	}
 }

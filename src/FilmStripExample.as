@@ -1,10 +1,12 @@
 package {
 	import com.animoto.filmstrip.FilmStrip;
+	import com.animoto.filmstrip.FilmStripBlurMode;
 	import com.animoto.filmstrip.FilmStripEvent;
 	import com.animoto.filmstrip.output.PlaybackFromRAM;
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
 	import filmstripexamples.Dice;
+	import filmstripexamples.OverlappingDice;
 	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -25,7 +27,7 @@ package {
 			super();
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
-			dice = new Dice();
+			dice = new OverlappingDice();
 			addChild(dice);
 			start();
 			stage.addEventListener(MouseEvent.CLICK, start);
@@ -42,10 +44,11 @@ package {
 			
 			f = new FilmStrip(new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer));
 			f.addEventListener(FilmStripEvent.RENDER_STOPPED, resize);
-			f.backgroundColor = 0x330000;
+			f.backgroundColor = 0xf0ecaf;
 			f.bufferMilliseconds = 1;
-			f.subframeBufferMilliseconds = 1;
+			f.subframeBufferMilliseconds = 33;
 			f.durationInSeconds = 2;// - getTimer()/1000;
+			f.blurMode = FilmStripBlurMode.MATTE_SUBFRAMES;
 			f.frameRate = 20;
 			
 			playbackBitmap = new PlaybackFromRAM(f);

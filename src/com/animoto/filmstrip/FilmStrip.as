@@ -174,6 +174,8 @@ package com.animoto.filmstrip
 			data = new BitmapData(width, height, transparent, backgroundColor);
 			data.draw(bitmapScene);
 			
+			bitmapScene.dump();
+			
 			dispatchEvent( new FilmStripEvent(FilmStripEvent.FRAME_RENDERED, data) );
 			
 			_frameCount++;

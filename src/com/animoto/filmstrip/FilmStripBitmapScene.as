@@ -43,5 +43,21 @@ package com.animoto.filmstrip
 				}
 			}
 		}
+		
+		public function dump():void {
+			trace("-------bitmapscene-------");
+			var n:int = numChildren;
+			while (--n > -1) {
+				var item:DisplayObject = getChildAt(n);
+				var tag:String = "> Stack item "+ n + " " + item.toString();
+				if (item is Sprite && (item as Sprite).numChildren > 1) {
+					trace(tag + " contains "+(item as Sprite).numChildren+" bitmaps");
+				}
+				else {
+					trace(tag);
+				}
+			}
+			trace("-------------------------");
+		}
 	}
 }

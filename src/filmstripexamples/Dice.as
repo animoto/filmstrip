@@ -4,13 +4,15 @@ package filmstripexamples
 	
 	import com.animoto.filmstrip.PulseControl;
 	
+	import flash.display.GradientType;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	
 	import org.papervision3d.cameras.Camera3D;
 	import org.papervision3d.core.proto.LightObject3D;
 	import org.papervision3d.core.proto.MaterialObject3D;
-	import org.papervision3d.materials.shadematerials.FlatShadeMaterial;
+	import org.papervision3d.materials.BitmapFileMaterial;
+	import org.papervision3d.materials.MovieMaterial;
 	import org.papervision3d.materials.utils.MaterialsList;
 	import org.papervision3d.objects.DisplayObject3D;
 	import org.papervision3d.objects.primitives.Cube;
@@ -23,9 +25,10 @@ package filmstripexamples
 	
 	public class Dice extends Sprite
 	{
-		public static var orangeMaterial: MaterialObject3D;
+		public static var greenMM: MovieMaterial;
+		public static var greenMaterial: MaterialObject3D;
 		public static var greyMaterial: MaterialObject3D;
-		public static var seedMaterial: MaterialObject3D;
+		public static var whiteMaterial: MaterialObject3D;
 
 		public var scene: Scene3D;
 		public var camera:Camera3D;
@@ -42,7 +45,8 @@ package filmstripexamples
 		protected var _bel2: BitmapEffectLayer;
 		protected var _cube1Layer: ViewportLayer;
 		protected var _cube2Layer: ViewportLayer;
-		
+		protected var cubeSize:Number = 150;
+			
 		public function Dice()
 		{
 			addEventListener(Event.ADDED_TO_STAGE, setupScene);
@@ -58,26 +62,30 @@ package filmstripexamples
 			camera.focus = 700;
 			//camera.z = -1000;
 			scene = new Scene3D();
-			_light = new LightObject3D();
-			_light.z = -3000;
-			_light.x = 400;
-			_light.y = -10;
+			
+//			_light = new LightObject3D();
+//			_light.z = -500;
+//			_light.x = 400;
+//			_light.y = 400;
+			
 			//_stats = new StatsView(renderer);
 			//addChild(_stats);
 			
 			// Use lighting
-  			orangeMaterial = new FlatShadeMaterial(_light, 0xFEB333, 0xA06F20);
-			greyMaterial = new FlatShadeMaterial(_light, 0x333333, 0x999999);
-			seedMaterial = new FlatShadeMaterial(_light, 0x006988, 0xAAAAAA);
+//  			greenMaterial = new FlatShadeMaterial(_light, 0, 0x33FF33);
+//			greyMaterial = new FlatShadeMaterial(_light, 0x333333, 0x999999);
+//			whiteMaterial = new FlatShadeMaterial(_light, 0xFFFFFF, 0x000000);
 			
 			// Don't use lighting (comment out other set)
-/* 			orangeMaterial = new ColorMaterial(0xFEB333);
+/* 			greenMaterial = new ColorMaterial(0xFEB333);
 			greyMaterial = new ColorMaterial(0x333333);
 			seedMaterial = new ColorMaterial(0x006988); */
 			
 			draw();
 			
 			PulseControl.addEnterFrameListener(update, false, 9999);
+			
+			runAnimation();
 			
 			// For Go3D version -- Ensures scene update occurs afer all animations.
 //			var pulse:UpdatePulse = new UpdatePulse();
@@ -87,8 +95,6 @@ package filmstripexamples
 		
 		protected function draw():void {
 			
-			var cubeSize:Number = 150;
-			
 			camera.x = 500;
 			camera.y = 1000;
 			camera.z = -1200;
@@ -96,19 +102,40 @@ package filmstripexamples
 			camera.rotationX = 30;
 			camera.rotationY = -30;
 			
-			_floor = new Plane(seedMaterial, 1000, 1000);
+			var green:Sprite = new Sprite();
+			//green.graphics.beginGradientFill(GradientType.LINEAR, [0x0, 0x006600], [1,1], [0,255]);
+			green.graphics.beginFill(0x006600, 1);
+			green.graphics.drawRect(0, 0, 1000, 1000);
+  			greenMM = new MovieMaterial(green);
+  			greenMM.doubleSided = true;
+  			
+			_floor = new Plane(greenMM, 1000, 1000);
 			_floor.y = -50;
-			_floor.rotationX = 90;
-			_floor.rotationY = 90;
+			_floor.pitch(90);
 			scene.addChild(_floor);
 			
 			//_holder = new DisplayObject3D();
 			//scene.addChild(_holder);
 			
-			_cube1 = new Cube(new MaterialsList({all:greyMaterial}), cubeSize, cubeSize, cubeSize, 4, 4, 4);
+			var faces:Array = new Array();
+			for (var i:int=0; i<6; i++) {
+				var face:BitmapFileMaterial = new BitmapFileMaterial("filmstripexamples/red"+(i+1)+".png", false);
+				face.oneSide = false;
+				face.smooth = true;
+//				var shader:FlatShader = new FlatShader(_light);
+//				var sm:ShadedMaterial = new ShadedMaterial(face, shader);
+//				sm.oneSide = false;
+//				sm.smooth = true;
+//				faces.push(sm);
+				faces.push(face);
+			}
+			var dml:MaterialsList = new MaterialsList({top:faces[0], bottom:faces[1], left:faces[2], right:faces[3], front:faces[4], back:faces[5]});
+			var basicml:MaterialsList = new MaterialsList({ all : whiteMaterial });
+			var diceml:MaterialsList = dml;
+			_cube1 = new Cube(diceml, cubeSize, cubeSize, cubeSize, 2, 2, 2);
 			_cube1.x = -1500;
 			_cube1.y = 600;
-			_cube2 = new Cube(new MaterialsList({all:orangeMaterial}), cubeSize, cubeSize, cubeSize, 4, 4, 4);
+			_cube2 = new Cube(diceml, cubeSize, cubeSize, cubeSize, 2, 2, 2);
 			_cube2.x = -600;
 			_cube2.y = 600;
 			
@@ -150,7 +177,9 @@ package filmstripexamples
 //			viewport.containerSprite.addLayer(_bel1);
 //			viewport.containerSprite.addLayer(_bel2);
 			 */
-			 
+		}
+		
+		protected function runAnimation():void {
 			 
 			Tweener.addTween(_cube1, {x:100, z:100, rotationX:360, time:1.7, transition:"easeoutcirc"});
 			Tweener.addTween(_cube1, {rotationY:180, rotationZ:-180, y:cubeSize/2, time:1.7, transition:"easeoutbounce"});
@@ -189,7 +218,6 @@ package filmstripexamples
 			if (PulseControl.isFrozen()==false) {
 				renderer.renderScene(scene, camera, viewport);
 			}
-			
 			// PROBLEM WITH PAPERVISION: Camera is not updated during renderLayers which makes it essentially unusable.
 			//renderer.renderLayers(scene, camera, viewport, [/* _cube1Layer, */ _cube2Layer]);
 		}

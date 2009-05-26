@@ -2,7 +2,6 @@ package com.animoto.filmstrip
 {
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
-	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	import flash.utils.Dictionary;
 	
@@ -36,7 +35,7 @@ package com.animoto.filmstrip
 		}
 		
 		public function renderFrame(currentTime:int):void {
-			trace("renderFrame");
+			//trace("renderFrame");
 			this.currentTime = currentTime;
 			
 			// eventually this class could contain all the logical pathways for various render modes, while scenes will do all the manual labor.
@@ -75,19 +74,15 @@ package com.animoto.filmstrip
 			}
 		}
 		
-		public function firstSubframeComplete(container:Sprite):void {
-			filmStrip.bitmapScene.addChild(container);
-		}
-		
-		public function motionBlurComplete(container:Sprite):void {
-			if (filmStrip.bitmapScene.contains(container)==false) {
-				filmStrip.bitmapScene.addChild(container);
-			}
-//			if (singleImage!=null) {
-//				filmStrip.bitmapScene.addChild(singleImage);
-//			}
+		public function subframeComplete(blur:MotionBlurController, index:int, done:Boolean):void {
 			
-			renderNextBlur();
+			if (filmStrip.bitmapScene.contains(blur.container)==false) {
+				filmStrip.bitmapScene.addChild(blur.container);
+			}
+			
+			if (done) {
+				renderNextBlur();
+			}
 		}
 		
 		protected function renderNextBlur():void {
