@@ -2,24 +2,9 @@ package filmstripexamples
 {
 	import caurina.transitions.Tweener;
 	
-	import com.animoto.filmstrip.PulseControl;
-	
 	import flash.events.Event;
-	
-	import org.papervision3d.cameras.Camera3D;
-	import org.papervision3d.core.proto.LightObject3D;
-	import org.papervision3d.core.proto.MaterialObject3D;
-	import org.papervision3d.materials.BitmapFileMaterial;
-	import org.papervision3d.materials.shadematerials.FlatShadeMaterial;
-	import org.papervision3d.materials.utils.MaterialsList;
-	import org.papervision3d.objects.DisplayObject3D;
-	import org.papervision3d.objects.primitives.Cube;
-	import org.papervision3d.objects.primitives.Plane;
-	import org.papervision3d.render.BasicRenderEngine;
-	import org.papervision3d.scenes.Scene3D;
-	import org.papervision3d.view.Viewport3D;
-	import org.papervision3d.view.layer.BitmapEffectLayer;
-	import org.papervision3d.view.layer.ViewportLayer;
+	import flash.filters.BlurFilter;
+	import flash.filters.GlowFilter;
 	
 	public class OverlappingDice extends Dice
 	{
@@ -28,14 +13,22 @@ package filmstripexamples
 			addEventListener(Event.ADDED_TO_STAGE, setupScene);
 		}
 		
-		override protected function draw():void {
+		override public function draw():void {
 			super.draw();
 			camera.zoom = 2;
 			camera.rotationX = 25;
 			camera.rotationY = -45;
 			_cube2.x = 1000;
 		}
-		override protected function runAnimation():void {
+		override public function runAnimation():void {
+			
+			filter1 = new GlowFilter(0xFFFFFF, 0.85, 20, 20, 5);
+			filter2 = new BlurFilter(100, 0);
+			
+			Tweener.addTween(filter1, {blurX:100, blurY:100, strength:20, time:1, transition:"easeoutcirc"});
+			Tweener.addTween(filter1, {blurX:0, blurY:0, strength:0, time:1, delay:1.1, transition:"easeincirc"});
+
+			Tweener.addTween(filter2, {blurX:0, time:1, transition:"easeincirc"});
 			
 			Tweener.addTween(_cube1, {x:100, z:100, rotationX:360, time:1.7, transition:"easeoutcirc"});
 			Tweener.addTween(_cube1, {rotationY:180, rotationZ:-180, y:cubeSize/2, time:1.7, transition:"easeoutbounce"});

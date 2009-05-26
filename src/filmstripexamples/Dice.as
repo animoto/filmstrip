@@ -4,13 +4,14 @@ package filmstripexamples
 	
 	import com.animoto.filmstrip.PulseControl;
 	
-	import flash.display.GradientType;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.filters.BitmapFilter;
 	
 	import org.papervision3d.cameras.Camera3D;
 	import org.papervision3d.core.proto.LightObject3D;
 	import org.papervision3d.core.proto.MaterialObject3D;
+	import org.papervision3d.events.FileLoadEvent;
 	import org.papervision3d.materials.BitmapFileMaterial;
 	import org.papervision3d.materials.MovieMaterial;
 	import org.papervision3d.materials.utils.MaterialsList;
@@ -35,27 +36,29 @@ package filmstripexamples
 		public var viewport:Viewport3D;
 //		public var viewport:BitmapViewport3D;
 		public var renderer:BasicRenderEngine;
-		protected var _light: LightObject3D;
-		protected var _holder: DisplayObject3D;
-		protected var _cube1: Cube;
-		protected var _cube2: Cube;
-		protected var _floor: Plane;
-		protected var _bel0: BitmapEffectLayer;
-		protected var _bel1: BitmapEffectLayer;
-		protected var _bel2: BitmapEffectLayer;
-		protected var _cube1Layer: ViewportLayer;
-		protected var _cube2Layer: ViewportLayer;
-		protected var cubeSize:Number = 150;
+		public var filter1:BitmapFilter;
+		public var filter2:BitmapFilter;
+		public var _light: LightObject3D;
+		public var _holder: DisplayObject3D;
+		public var _cube1: Cube;
+		public var _cube2: Cube;
+		public var _floor: Plane;
+		public var _bel0: BitmapEffectLayer;
+		public var _bel1: BitmapEffectLayer;
+		public var _bel2: BitmapEffectLayer;
+		public var _cube1Layer: ViewportLayer;
+		public var _cube2Layer: ViewportLayer;
+		public var cubeSize:Number = 150;
+		public var facesLoaded:int = 0;
 			
 		public function Dice()
 		{
 			addEventListener(Event.ADDED_TO_STAGE, setupScene);
 		}
 		
-		protected function setupScene(e:Event):void {
+		public function setupScene(e:Event):void {
 			viewport = new Viewport3D(864, 480, false, false, true, true);
 //			viewport = new BitmapViewport3D(1000, 700, false, true, 0x0, false, true);
-			addChild(viewport);
 			renderer = new BasicRenderEngine();
 			camera = new Camera3D();
 			camera.zoom = 1;
@@ -85,15 +88,13 @@ package filmstripexamples
 			
 			PulseControl.addEnterFrameListener(update, false, 9999);
 			
-			runAnimation();
-			
 			// For Go3D version -- Ensures scene update occurs afer all animations.
 //			var pulse:UpdatePulse = new UpdatePulse();
 //			pulse.addEventListener(UpdatePulse.PULSE, update);
 //			GoEngine.addManager(pulse);
 		}
 		
-		protected function draw():void {
+		public function draw():void {
 			
 			camera.x = 500;
 			camera.y = 1000;
@@ -120,6 +121,7 @@ package filmstripexamples
 			var faces:Array = new Array();
 			for (var i:int=0; i<6; i++) {
 				var face:BitmapFileMaterial = new BitmapFileMaterial("filmstripexamples/red"+(i+1)+".png", false);
+				face.addEventListener(FileLoadEvent.LOAD_COMPLETE, faceLoaded);
 				face.oneSide = false;
 				face.smooth = true;
 //				var shader:FlatShader = new FlatShader(_light);
@@ -127,7 +129,7 @@ package filmstripexamples
 //				sm.oneSide = false;
 //				sm.smooth = true;
 //				faces.push(sm);
-				faces.push(face);
+				faces.splice(Math.floor(Math.random()*faces.length), 0, face);
 			}
 			var dml:MaterialsList = new MaterialsList({top:faces[0], bottom:faces[1], left:faces[2], right:faces[3], front:faces[4], back:faces[5]});
 			var basicml:MaterialsList = new MaterialsList({ all : whiteMaterial });
@@ -179,17 +181,26 @@ package filmstripexamples
 			 */
 		}
 		
-		protected function runAnimation():void {
+		public function faceLoaded(event:FileLoadEvent):void {
+			if (++facesLoaded==6) {
+				addChild(viewport);
+				runAnimation();
+				dispatchEvent(new Event(Event.COMPLETE));
+			}
+		}
+		
+		public function runAnimation():void {
 			 
 			Tweener.addTween(_cube1, {x:100, z:100, rotationX:360, time:1.7, transition:"easeoutcirc"});
 			Tweener.addTween(_cube1, {rotationY:180, rotationZ:-180, y:cubeSize/2, time:1.7, transition:"easeoutbounce"});
 			
-			Tweener.addTween(_cube2, {z:-250, rotationX:180, time:2, transition:"easeoutquint"});
-			Tweener.addTween(_cube2, {rotationY:90, rotationZ:-90, y:cubeSize/2, time:2, transition:"easeoutbounce"});
-			Tweener.addTween(_cube2, {x:550, time:.9, transition:"easeoutquad"});
-			Tweener.addTween(_cube2, {x:300, time:.5, rotationY:-180, delay:.6, transition:"easeoutcirc"});
+			Tweener.addTween(_cube2, {rotationY:-90, rotationX:360, rotationZ:360, z:-250, time:1.6, transition:"easeoutquad"});
+			Tweener.addTween(_cube2, {y:cubeSize/2, time:1.6, transition:"easeoutbounce"});
+			Tweener.addTween(_cube2, {x:500, time:.6, transition:"easeoutquad", onComplete:function():void {
+				Tweener.addTween(_cube2, {x:100, time:1, transition:"easeoutcirc"});
+			}});
 			
-			Tweener.addTween(camera, {x:-320, y:350, z:-800, rotationY:35, rotationX:15, zoom:1, time:2, transition:"easeinoutsine"});
+			Tweener.addTween(camera, {x:-320, y:350, z:-800, rotationY:35, rotationX:15, zoom:1, time:1, transition:"easeinoutsine"});
 			
 			// Test to prove _holder
 //			Tweener.addTween(_holder, {scaleX:.5, scaleY:.5, scaleZ:.5, time:.5, transition:"easeincirc"});
@@ -212,7 +223,7 @@ package filmstripexamples
 			
 		}
 		
-		protected function update(e:Event=null):void {
+		public function update(e:Event=null):void {
 			//trace("lookAt..");
 			//camera.lookAt(_floor);
 			if (PulseControl.isFrozen()==false) {

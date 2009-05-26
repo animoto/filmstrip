@@ -110,14 +110,15 @@ package com.animoto.filmstrip.output
 				pausedTF.setTextFormat(new TextFormat("_sans", 24, 0x0, true));
 				pausedTF.selectable = false;
 				pausedTF.autoSize = TextFieldAutoSize.LEFT;
-				if (datas.length>0) {
-					pausedTF.x = datas[0].width / 2 - pausedTF.width / 2 + this.x;
-					pausedTF.y = datas[0].height / 2 - pausedTF.height / 2 + this.y;
-				}
-				else {
-					pausedTF.x = this.x + 100;
-					pausedTF.y = this.y + 50;
-				}
+				pausedTF.x = pausedTF.y = 5;
+//				if (datas.length>0) {
+//					pausedTF.x = datas[0].width / 2 - pausedTF.width / 2 + this.x;
+//					pausedTF.y = datas[0].height / 2 - pausedTF.height / 2 + this.y;
+//				}
+//				else {
+//					pausedTF.x = this.x + 100;
+//					pausedTF.y = this.y + 50;
+//				}
 				this.parent.addChild(pausedTF);
 			}
 		}

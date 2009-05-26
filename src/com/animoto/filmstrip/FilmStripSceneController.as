@@ -2,7 +2,6 @@ package com.animoto.filmstrip
 {
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
-	import flash.display.Sprite;
 	import flash.utils.Dictionary;
 	
 	public class FilmStripSceneController
@@ -12,7 +11,7 @@ package com.animoto.filmstrip
 		public var currentTime:int;
 		
 		protected var renderCallback:Function;
-		protected var motionBlurRetainer: Dictionary = new Dictionary(true);
+		protected var motionBlurRetainer: Dictionary;
 		protected var motionBlurs: Array;
 		protected var motionBlurIndex: int;
 		
@@ -31,16 +30,24 @@ package com.animoto.filmstrip
 			renderCallback = null;
 			filmStrip = null;
 			motionBlurs = null;
-			// TODO: kill active processes
+			for each (var blur:MotionBlurController in motionBlurRetainer) {
+				blur.destroy();
+			}
+			motionBlurRetainer = null;
 		}
 		
 		public function renderFrame(currentTime:int):void {
 			//trace("renderFrame");
 			this.currentTime = currentTime;
+			this.motionBlurRetainer = new Dictionary(true);
 			
-			// eventually this class could contain all the logical pathways for various render modes, while scenes will do all the manual labor.
-			// gonna start with full meal deal: EACH_OBJECT + SPLIT_SUBFRAMES and build from there.
-			if (filmStrip.blurMode!=FilmStripBlurMode.NONE) {
+			if (filmStrip.captureMode==FilmStripCaptureMode.WHOLE_SCENE) {
+				var sceneBlur:MotionBlurController = new MotionBlurController(this, null);
+				motionBlurs = [ sceneBlur ];
+				motionBlurRetainer[ scene ] = sceneBlur;
+				sceneBlur.render();
+			}
+			else {
 				setupMotionBlur();
 			}
 		}
@@ -86,7 +93,7 @@ package com.animoto.filmstrip
 		}
 		
 		protected function renderNextBlur():void {
-			if (++motionBlurIndex == motionBlurs.length) {
+			if (++motionBlurIndex >= motionBlurs.length) {
 				complete();
 			}
 			else {
@@ -96,7 +103,6 @@ package com.animoto.filmstrip
 		
 		protected function complete():void {
 			renderCallback();
-			stopRendering(); // performs cleanup
 		}
 		
 		protected function filmstripRenderStopped(event:FilmStripEvent):void {

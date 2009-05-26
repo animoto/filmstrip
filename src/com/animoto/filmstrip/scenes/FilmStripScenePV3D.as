@@ -4,6 +4,8 @@ package com.animoto.filmstrip.scenes
 	import com.mosesSupposes.util.SelectiveDrawBase;
 	
 	import flash.display.BitmapData;
+	import flash.filters.BitmapFilter;
+	import flash.utils.Dictionary;
 	
 	import org.papervision3d.core.proto.CameraObject3D;
 	import org.papervision3d.core.proto.DisplayObjectContainer3D;
@@ -22,6 +24,8 @@ package com.animoto.filmstrip.scenes
 		public var renderer:BasicRenderEngine;
 		
 		public var visibleChildren:Array;
+		
+		protected var filters: Dictionary = new Dictionary();
 		
 		/**
 		 * Required by IFilmStripScene, provide the scene's actual size.
@@ -55,6 +59,21 @@ package com.animoto.filmstrip.scenes
 		
 		public function inventoryObjects():void {
 			visibleChildren = inventoryScope(scene3D);
+		}
+		
+		public function addFilter(targetInScene:Object, effect:BitmapFilter):void {
+			if (filters[targetInScene]==null) {
+				filters[targetInScene] = new Array();
+			}
+			(filters[targetInScene] as Array).push(effect);
+		}
+		
+		public function removeFilters(targetInScene:Object):void {
+			delete filters[targetInScene];
+		}
+		
+		public function getFilters(targetInScene:Object):Array {
+			return filters[targetInScene];
 		}
 		
 		protected function inventoryScope(container:DisplayObjectContainer3D):Array {
