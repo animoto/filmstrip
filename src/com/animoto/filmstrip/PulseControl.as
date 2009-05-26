@@ -18,6 +18,10 @@ package com.animoto.filmstrip
 		{
 		}
 		
+		public static function isFrozen():Boolean {
+			return frozen;
+		}
+		
 		public static function freeze():void {
 			pulseShape.removeEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
 			timer.pause();

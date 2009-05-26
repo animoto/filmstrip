@@ -66,7 +66,12 @@ package com.animoto.filmstrip.scenes
 						a = a.concat(inventoryScope(node));
 					}
 				}
+				else {
+					trace("Node invis: "+node);
+				}
 			}
+			// Sort by screen depth
+			//a.sortOn("screenZ", Array.DESCENDING | Array.NUMERIC);
 			return a;
 		}
 

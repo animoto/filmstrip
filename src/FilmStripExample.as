@@ -1,24 +1,24 @@
 package {
 	import com.animoto.filmstrip.FilmStrip;
 	import com.animoto.filmstrip.FilmStripEvent;
+	import com.animoto.filmstrip.output.PlaybackFromRAM;
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
 	import filmstripexamples.Dice;
 	
-	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
-	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.filters.DropShadowFilter;
 
-	[SWF(backgroundColor="#DDDDDD", frameRate="30")]
+	[SWF(backgroundColor="#FFFFFF", frameRate="30")]
 	
 	public class FilmStripExample extends Sprite
 	{
-		private var bitmap:Bitmap;
 		private var dice:Dice;
+		private var f:FilmStrip;
+		private var playbackBitmap:PlaybackFromRAM;
+		private var outputDisplay:Sprite;
 		
 		public function FilmStripExample()
 		{
@@ -27,38 +27,53 @@ package {
 			stage.align = StageAlign.TOP_LEFT;
 			dice = new Dice();
 			addChild(dice);
-			//start();
+			start();
 			stage.addEventListener(MouseEvent.CLICK, start);
 		}
 		
-		private function start(event:Event=null): void {
+		private function start(event:MouseEvent=null): void {
 			
-			bitmap = new Bitmap();
-			bitmap.scaleX = bitmap.scaleY = 0.25;
-			bitmap.x = bitmap.y = 5;
-			bitmap.filters = [new DropShadowFilter(4,45,0,0.25,5,5)];
-			addChild(bitmap);
+			if (f!=null) {
+				if (f.rendering) {
+					f.stopRendering();
+				}
+				return;
+			}
 			
-			var f:FilmStrip = new FilmStrip(new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer));
-			f.addEventListener(FilmStripEvent.FRAME_RENDERED, frameRendered);
+			f = new FilmStrip(new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer));
+			f.addEventListener(FilmStripEvent.RENDER_STOPPED, resize);
 			f.backgroundColor = 0x330000;
 			f.bufferMilliseconds = 1;
-			f.durationInSeconds = .5;
-			f.frameRate = 30;
+			f.subframeBufferMilliseconds = 1;
+			f.durationInSeconds = 2;// - getTimer()/1000;
+			f.frameRate = 20;
+			
+			playbackBitmap = new PlaybackFromRAM(f);
+			
+			outputDisplay = new Sprite();
+			outputDisplay.graphics.drawRect(0, 0, dice.viewport.width, dice.viewport.height);
+			playbackBitmap.x = playbackBitmap.y = 5;
+			//playbackBitmap.filters = [new DropShadowFilter(4,45,0,0.25,5,5)];
+			outputDisplay.addChild(playbackBitmap);
 			
 			f.bitmapScene.graphics.lineStyle(1, f.backgroundColor, 1);
 			f.bitmapScene.graphics.drawRect(0, 0, dice.viewport.width, dice.viewport.height);
-			f.bitmapScene.scaleX = f.bitmapScene.scaleY = 0.25;
 			f.bitmapScene.x = 5;
-			f.bitmapScene.y = 250;
-			addChild(f.bitmapScene);
+			f.bitmapScene.y = dice.viewport.height + 5;
+			outputDisplay.addChild(f.bitmapScene);
+			
+			dice.scaleX = dice.scaleY = 0.5;
+			//outputDisplay.scaleX = outputDisplay.scaleY = 0.5;
+			dice.x = outputDisplay.getBounds(this).right + 5;
+			addChild(outputDisplay);
 			
 			f.startRendering();
 		}
 		
-		private function frameRendered(event:FilmStripEvent):void {
-			bitmap.bitmapData = event.data;
-			bitmap.smoothing = true;
+		private function resize(event:FilmStripEvent):void {
+			removeChild(dice);
+			outputDisplay.removeChild(f.bitmapScene);
+			outputDisplay.scaleX = outputDisplay.scaleY = 1;
 		}
 	}
 }

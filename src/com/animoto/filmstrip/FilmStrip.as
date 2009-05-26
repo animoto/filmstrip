@@ -1,8 +1,8 @@
 package com.animoto.filmstrip
 {
 	import com.animoto.filmstrip.scenes.IFilmStripScene;
+	import com.animoto.util.StopWatch;
 	
-	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
@@ -45,6 +45,8 @@ package com.animoto.filmstrip
 		protected var _currentTime:Number;
 		protected var _index: int;
 		protected var _buffer:Timer = new Timer(1, 1);
+		protected var _clock: StopWatch = new StopWatch();
+		protected var _frameCount: int;
 		
 		public function FilmStrip(scene:IFilmStripScene)
 		{
@@ -92,12 +94,17 @@ package com.animoto.filmstrip
 				_currentTime += frameDuration; // Shave a frame, to ensure blur has change to work with in case animations are at beginning.
 			}
 			_index = 0;
+			_frameCount = 0;
+			_clock.reset();
+			_clock.start();
 			_busy = true;
 			doRenderNext();
 		}
 		
 		public function stopRendering():void {
 			if (_busy) {
+				_clock.pause();
+				trace("Time elapsed: "+_clock.seconds+" seconds for "+_frameCount+" frames. ("+Number(_clock.seconds/_frameCount).toFixed(1)+" seconds per frame)");
 				dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED) );
 				PulseControl.resume(); // unfreezes time for animation engines
 			}
@@ -161,12 +168,15 @@ package com.animoto.filmstrip
 
 		protected function frameComplete():void {
 			// TODO: bitmap scene may need to be attached to stage to fully render correctly
+			
+			// Render frame
 			var data:BitmapData;
 			data = new BitmapData(width, height, transparent, backgroundColor);
 			data.draw(bitmapScene);
 			
 			dispatchEvent( new FilmStripEvent(FilmStripEvent.FRAME_RENDERED, data) );
 			
+			_frameCount++;
 			if (done()) { // TODO: be sure time is not left backed up on subframe
 				stopRendering();
 			}

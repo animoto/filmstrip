@@ -1,4 +1,4 @@
-package com.animoto.animotor.render
+package com.animoto.filmstrip.output
 {
 	import com.animoto.animotor.events.OutputModuleEvent;
 	import com.animoto.animotor.events.RenderEvent;
@@ -18,7 +18,7 @@ package com.animoto.animotor.render
 	import mx.graphics.codec.JPEGEncoder;
 	import mx.graphics.codec.PNGEncoder;
 
-	public class FrameDumpModule extends EventDispatcher implements IOutputModule
+	public class FrameDump extends EventDispatcher implements IOutputModule
 	{
 		public var vo: RenderQueueItemVO;
 		
@@ -35,7 +35,7 @@ package com.animoto.animotor.render
 		
 		//--
 
-		public function FrameDumpModule(queue:IAnimotorRenderer=null) {
+		public function FrameDump(queue:IAnimotorRenderer=null) {
 			if (queue!=null)
 				init(queue);
 		}

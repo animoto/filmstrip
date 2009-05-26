@@ -48,17 +48,6 @@ package com.mosesSupposes.util
 			this.drawSource = drawSource;
 		}
 		
-		/**
-		 * Full draw cycle including toggle, capture, and restore.
-		 * 
-		 * @param selectiveChildren		Objects to leave visible for the capture, others are turned off.
-		 * @param matrix				Param passed to BitmapData.draw().
-		 * @param colorTransform		Param passed to BitmapData.draw().
-		 * @param blendMode				Param passed to BitmapData.draw().
-		 * @param clipRect				Param passed to BitmapData.draw().
-		 * @param smoothing				Param passed to BitmapData.draw().
-		 * @return 
-		 */
 		public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
 			var doRestore:Boolean = manualPreDraw(selectiveChildren);
 			bitmapData.draw(drawSource, matrix, colorTransform, blendMode, clipRect, smoothing);

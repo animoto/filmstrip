@@ -3,7 +3,8 @@ package com.animoto.filmstrip
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
 	import flash.display.Bitmap;
-	import flash.display.BitmapData;
+	import flash.display.Sprite;
+	import flash.utils.Dictionary;
 	
 	public class FilmStripSceneController
 	{
@@ -12,6 +13,7 @@ package com.animoto.filmstrip
 		public var currentTime:int;
 		
 		protected var renderCallback:Function;
+		protected var motionBlurRetainer: Dictionary = new Dictionary(true);
 		protected var motionBlurs: Array;
 		protected var motionBlurIndex: int;
 		
@@ -23,22 +25,18 @@ package com.animoto.filmstrip
 		public function init(filmStrip:FilmStrip, renderCallback:Function):void {
 			this.filmStrip = filmStrip;
 			this.renderCallback = renderCallback;
+			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, filmstripRenderStopped, false, 0, true);
 		}
 		
 		public function stopRendering():void {
 			renderCallback = null;
 			filmStrip = null;
-			if (motionBlurs!=null) {
-				for each (var blur:MotionBlurController in motionBlurs) {
-					blur.destroy();
-				}
-			}
 			motionBlurs = null;
 			// TODO: kill active processes
 		}
 		
 		public function renderFrame(currentTime:int):void {
-			
+			trace("renderFrame");
 			this.currentTime = currentTime;
 			
 			// eventually this class could contain all the logical pathways for various render modes, while scenes will do all the manual labor.
@@ -51,24 +49,43 @@ package com.animoto.filmstrip
 		protected function setupMotionBlur():void {
 			scene.inventoryObjects();
 			motionBlurs = new Array();
+			var blur: MotionBlurController;
 			for each (var child:Object in scene.visibleChildren) {
-				motionBlurs.push( new MotionBlurController(this, child) );
+				if (motionBlurRetainer[child]==null) {
+					blur = new MotionBlurController(this, child);
+					motionBlurRetainer[child] = blur;
+					motionBlurs.push(blur);
+				}
+				else {
+					motionBlurs.push(motionBlurRetainer[child]);
+				}
+			}
+			for each (blur in motionBlurRetainer) {
+				if (motionBlurs.indexOf(blur)==-1) {
+					motionBlurRetainer[blur.target].destroy();
+					delete motionBlurRetainer[blur.target];
+				}
 			}
 			if (motionBlurs.length > 0) {
-				motionBlurIndex = 0;
-				(motionBlurs[0] as MotionBlurController).render();
+				motionBlurIndex = -1;
+				renderNextBlur();
 			}
 			else {
 				complete();
 			}
 		}
 		
-		public function motionBlurComplete(motionBlur:MotionBlurController):void {
-			filmStrip.bitmapScene.addChild(new Bitmap(motionBlur.images[0] as BitmapData));
-			
-			// TEMP!
-			PulseControl.setTime(currentTime);
-			scene.redrawScene();
+		public function firstSubframeComplete(container:Sprite):void {
+			filmStrip.bitmapScene.addChild(container);
+		}
+		
+		public function motionBlurComplete(container:Sprite):void {
+			if (filmStrip.bitmapScene.contains(container)==false) {
+				filmStrip.bitmapScene.addChild(container);
+			}
+//			if (singleImage!=null) {
+//				filmStrip.bitmapScene.addChild(singleImage);
+//			}
 			
 			renderNextBlur();
 		}
@@ -85,6 +102,13 @@ package com.animoto.filmstrip
 		protected function complete():void {
 			renderCallback();
 			stopRendering(); // performs cleanup
+		}
+		
+		protected function filmstripRenderStopped(event:FilmStripEvent):void {
+			for each (var blur:MotionBlurController in motionBlurRetainer) {
+				blur.destroy();
+				delete motionBlurRetainer[blur.target];
+			}
 		}
 	}
 }

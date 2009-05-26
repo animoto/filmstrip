@@ -49,13 +49,13 @@ package filmstripexamples
 		}
 		
 		protected function setupScene(e:Event):void {
-			viewport = new Viewport3D(1000, 700, true, false, true, true);
+			viewport = new Viewport3D(864, 480, false, false, true, true);
 //			viewport = new BitmapViewport3D(1000, 700, false, true, 0x0, false, true);
 			addChild(viewport);
 			renderer = new BasicRenderEngine();
 			camera = new Camera3D();
 			camera.zoom = 1;
-			camera.focus = 1000;
+			camera.focus = 700;
 			//camera.z = -1000;
 			scene = new Scene3D();
 			_light = new LightObject3D();
@@ -89,10 +89,12 @@ package filmstripexamples
 			
 			var cubeSize:Number = 150;
 			
-			camera.x = 800;
-			camera.y = 1200;
-			camera.z = -1000;
+			camera.x = 500;
+			camera.y = 1000;
+			camera.z = -1200;
 			camera.zoom = 1;
+			camera.rotationX = 30;
+			camera.rotationY = -30;
 			
 			_floor = new Plane(seedMaterial, 1000, 1000);
 			_floor.y = -50;
@@ -100,8 +102,8 @@ package filmstripexamples
 			_floor.rotationY = 90;
 			scene.addChild(_floor);
 			
-			_holder = new DisplayObject3D();
-			scene.addChild(_holder);
+			//_holder = new DisplayObject3D();
+			//scene.addChild(_holder);
 			
 			_cube1 = new Cube(new MaterialsList({all:greyMaterial}), cubeSize, cubeSize, cubeSize, 4, 4, 4);
 			_cube1.x = -1500;
@@ -110,15 +112,20 @@ package filmstripexamples
 			_cube2.x = -600;
 			_cube2.y = 600;
 			
-//			scene.addChild(_cube1);
-//			scene.addChild(_cube2);
-			_holder.addChild(_cube1);
-			_holder.addChild(_cube2);
+//			_floor.useOwnContainer = true;
+//			_cube1.useOwnContainer = true;
+//			_cube2.useOwnContainer = true;
+//			_floor.alpha = 0.5;
+			
+			scene.addChild(_cube1);
+			scene.addChild(_cube2);
+//			_holder.addChild(_cube1);
+//			_holder.addChild(_cube2);
 			
 			_cube1Layer = viewport.getChildLayer(_cube1, true, false);
 			_cube2Layer = viewport.getChildLayer(_cube2, true, false);
-			camera.lookAt(_floor);
-			renderer.renderScene(scene, camera, viewport);
+			//camera.lookAt(_floor);
+			//renderer.renderScene(scene, camera, viewport);
 			
 			/* 
 			// BitmapEffectLayers
@@ -153,7 +160,7 @@ package filmstripexamples
 			Tweener.addTween(_cube2, {x:550, time:.9, transition:"easeoutquad"});
 			Tweener.addTween(_cube2, {x:300, time:.5, rotationY:-180, delay:.6, transition:"easeoutcirc"});
 			
-			Tweener.addTween(camera, {x:300, y:300, zoom:1, time:2, transition:"easeinoutquad"});
+			Tweener.addTween(camera, {x:-320, y:350, z:-800, rotationY:35, rotationX:15, zoom:1, time:2, transition:"easeinoutsine"});
 			
 			// Test to prove _holder
 //			Tweener.addTween(_holder, {scaleX:.5, scaleY:.5, scaleZ:.5, time:.5, transition:"easeincirc"});
@@ -177,8 +184,11 @@ package filmstripexamples
 		}
 		
 		protected function update(e:Event=null):void {
-			camera.lookAt(_floor);
-			renderer.renderScene(scene, camera, viewport);
+			//trace("lookAt..");
+			//camera.lookAt(_floor);
+			if (PulseControl.isFrozen()==false) {
+				renderer.renderScene(scene, camera, viewport);
+			}
 			
 			// PROBLEM WITH PAPERVISION: Camera is not updated during renderLayers which makes it essentially unusable.
 			//renderer.renderLayers(scene, camera, viewport, [/* _cube1Layer, */ _cube2Layer]);

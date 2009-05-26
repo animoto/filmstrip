@@ -2,8 +2,13 @@ package com.animoto.filmstrip
 {
 	import com.mosesSupposes.util.SelectiveDrawBase;
 	
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.BlendMode;
+	import flash.display.Sprite;
+	import flash.events.TimerEvent;
+	import flash.filters.BlurFilter;
+	import flash.utils.Timer;
 	
 	public class MotionBlurController
 	{
@@ -14,73 +19,128 @@ package com.animoto.filmstrip
 		
 		public static var strength:Number = 1;
 		
-		public static var maxSubframes:int = 20;
+		public static var maxSubframes:int = 16;
 		
-		public static var millisecondsPerSubframe:int = 20;
+		public static var millisecondsPerSubframe:int = 2;
 		
-		public static var subframeBlendMode: String = BlendMode.LIGHTEN;
+		public static var subframeBlendMode: String = BlendMode.NORMAL;
+
+		public static var peakSubframeAlpha: Number = 0.5;
 		
 		/**
-		 * Pans the blur across the primary frame, where -1 trails blur
-		 * behind object's motion and 1 shoots blur in front of motion.
+		 * For now set to -1 (trailing blur) or 1 (blur in front of motion).
+		 * 
+		 * In future this could be improved to include values in between,
+		 * to pan the blur across the primary frame, causing it to go both ways.
 		 */
 		public static var offset: Number = -1;
 		
-		public var images:Array;
+		public var container:Sprite;
+		public var target: Object;
 		
 		protected var controller: FilmStripSceneController;
-		protected var target: Object;
 		protected var deltaMgr: DeltaManager;
+		protected var drawUtil: SelectiveDrawBase;
+		protected var buffer: Timer;
 		protected var subframes: int;
 		protected var index: int;
-		protected var drawUtil: SelectiveDrawBase;
+		protected var delay: int;
 		
 		public function MotionBlurController(controller:FilmStripSceneController, target:Object)
 		{
 			this.controller = controller;
 			this.target = target;
 			deltaMgr = new DeltaManager(target);
+			delay = controller.filmStrip.subframeBufferMilliseconds;
+			if (delay > 0) {
+				buffer = new Timer(delay, 1);
+				buffer.addEventListener(TimerEvent.TIMER_COMPLETE, nextSubFrame);
+			}
+			threshold = Math.max(1, threshold);
+			peakSubframeAlpha = Math.max(1, peakSubframeAlpha);
+			// For now offset is limited to -1 or 1.
+			offset = (offset > 0 ? 1 : -1);
 		}
 		
 		public function render():void {
 			index = 0;
-			images = new Array();
+			container = new Sprite();
 			PulseControl.freeze(); // safety
 			
-			// capture primary frame and set up delta.
-			PulseControl.setTime(controller.currentTime);
-			
-			capture();
+			// animate to previous or next frame and set up delta.
+			PulseControl.setTime(controller.currentTime + (controller.filmStrip.frameDuration * offset));
 			deltaMgr.recordStartValues();
 			
-			// 
-			PulseControl.setTime(controller.currentTime - controller.filmStrip.frameDuration);
+			// estimate how many subframes we'll need based on amount of animation and capture primary frame.
+			PulseControl.setTime(controller.currentTime);
 			calculateSubframes();
-			if (subframes < Math.max(1, threshold)) {
-				subframes = 0;
+			capture();
+			
+			if (delay > 0) {
+				buffer.reset();
+				buffer.start();
 			}
-			complete(); // temp
+			else {
+				nextSubFrame();
+			}
+		}
+		
+		protected function nextSubFrame(e:TimerEvent=null):void {
+			if (controller==null) {
+				return;
+			}
+			var time:int = controller.currentTime + (millisecondsPerSubframe * index * offset);
+			if (++index>subframes || subframes<threshold || time<0) {
+				complete();
+				return;
+			}
+			
+			PulseControl.setTime(controller.currentTime + (millisecondsPerSubframe * index * offset));
+			var bitmap:Bitmap = capture();
+			bitmap.blendMode = subframeBlendMode;
+			var maxAlpha: Number = Math.max(0.1, 1 - (1/subframes)*index);
+			bitmap.alpha = (maxAlpha - ((maxAlpha / subframes) * (index - 1))) * peakSubframeAlpha;
+			var box:Number = (Math.min(index*0.1 + 1.5, 3));
+			bitmap.filters = [ new BlurFilter(box, box, 1) ];
+
+			if (index==2) {
+				(container.getChildAt(0) as Bitmap).filters = [ new BlurFilter(box, box, 1) ];
+				controller.firstSubframeComplete(container);
+			}
+			
+			if (delay > 0) {
+				buffer.reset();
+				buffer.start();
+			}
+			else {
+				nextSubFrame();
+			}
 		}
 		
 		public function destroy():void {
 			controller = null;
 			target = null;
-			// TODO: complete this method
+			deltaMgr = null;
+			buffer.reset();
+			buffer.removeEventListener(TimerEvent.TIMER_COMPLETE, nextSubFrame);
+			buffer = null;
+			drawUtil.manualPostDraw(false); // safety, releases references without rerendering 3d scene
+			drawUtil = null;
 		}
 		
-		protected function capture():void {
-			
-			// test:
-//			var bd:BitmapData = new BitmapData(controller.filmStrip.width, controller.filmStrip.height, true, 0x0);
-//			bd.draw(controller.scene.viewport);
-//			images.push(bd);
-			
+		protected function capture():Bitmap {
 			refreshDrawUtil();
-			drawUtil.manualPreDraw([target]);
+			if (index==0) {
+				drawUtil.manualPreDraw([target]); // Toggles other objects' visibility off temporarily and rerenders 3d scene. Restored in complete().
+			}
+			else {
+				controller.scene.redrawScene();
+			}
 			drawUtil.bitmapData.draw(drawUtil.drawSource);
-			drawUtil.manualPostDraw(false);
-			images.push(drawUtil.bitmapData);
+			var b:Bitmap = new Bitmap(drawUtil.bitmapData);
 			drawUtil.bitmapData = null;
+			container.addChild(b);
+			return b;
 		}
 		
 		protected function calculateSubframes():void {
@@ -91,15 +151,16 @@ package com.animoto.filmstrip
 			
 			var frameRateMult: Number = controller.filmStrip.frameRate / 30; // adjust for current render framerate, using a constant of 30fps (approximates video standard)
 			
-			subframes = delta * frameRateMult * strength * strengthMultiplier;
+			subframes = Math.min(maxSubframes, (delta * frameRateMult * strength * strengthMultiplier));
 			
-			if (delta > 0) { trace("target:"+target,"delta:" + delta, "subframes:" + subframes); }
+			//if (delta > 0) { trace("target:"+target,"delta:" + delta, "subframes:" + subframes); }
 			
 			// TODO: factor camera3D movement into compound delta..?
 		}
 		
 		protected function complete():void {
-			controller.motionBlurComplete(this);
+			drawUtil.manualPostDraw(); // Passing false to avoid rerendering the scene, which isn't necessary here
+			controller.motionBlurComplete(container);
 		}
 
 		
