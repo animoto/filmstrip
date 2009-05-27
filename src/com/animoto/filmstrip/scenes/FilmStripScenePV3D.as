@@ -17,7 +17,7 @@ package com.animoto.filmstrip.scenes
 	 * 
 	 * @author moses gunesch
 	 */
-	public class FilmStripScenePV3D extends FilmStripSceneBase
+	public class FilmStripScenePV3D extends FilmStripScene
 	{
 		public var scene3D:SceneObject3D;
 		public var camera:CameraObject3D;

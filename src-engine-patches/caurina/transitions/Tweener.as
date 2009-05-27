@@ -944,7 +944,7 @@ package caurina.transitions {
 			_tweenList = new Array();
 			
 			__tweener_controller__ = new PulseControl(); 				// FilmStrip patch
-			PulseControl.addEnterFrameListener(Tweener.onEnterFrame);	// FilmStrip patch
+			PulseControl.addEngineListener(Tweener.onEnterFrame);	// FilmStrip patch
 			
 			_currentTimeFrame = 0;
 			updateTime();
@@ -958,7 +958,7 @@ package caurina.transitions {
 			_tweenList = null;
 			_currentTime = 0;
 			_currentTimeFrame = 0;
-			PulseControl.removeEnterFrameListener(Tweener.onEnterFrame); // FilmStrip patch
+			PulseControl.removeEngineListener(Tweener.onEnterFrame); // FilmStrip patch
 			__tweener_controller__ = null;
 		}
 	

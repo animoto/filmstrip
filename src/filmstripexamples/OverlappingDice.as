@@ -13,8 +13,8 @@ package filmstripexamples
 			addEventListener(Event.ADDED_TO_STAGE, setupScene);
 		}
 		
-		override public function draw():void {
-			super.draw();
+		override public function setupScene(event:Event=null):void {
+			super.setupScene();
 			camera.zoom = 2;
 			camera.rotationX = 25;
 			camera.rotationY = -45;

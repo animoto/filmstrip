@@ -23,28 +23,51 @@ package com.animoto.filmstrip
 	 */
 	public class PulseControl
 	{
-		private static var timer: StopWatch = new StopWatch();
-		private static var pulseShape: Shape = new Shape();
-		private static var listening: Boolean = false;
-		private static var frozen: Boolean = false;
-		private static var dispatcher: EventDispatcher = new EventDispatcher();
-		
-		public function PulseControl()
-		{
+		// Replace all getTimer() (or new Date.getTime()) calls in active code with calls to this method.
+		public static function getCurrentTime():int {
+			return timer.milliseconds;
 		}
 		
+		// You can use this to find out whether any FilmStrips are currently rendering.
 		public static function isFrozen():Boolean {
 			return frozen;
 		}
+		
+		// Replace enterframe listeners in your active code with this call. (Not dispatched when PulseControl is frozen for FilmStrip render.)
+		public static function addEnterFrameListener(listener:Function, useCapture:Boolean=false, priority:int=0, useWeakReference:Boolean=false):void
+		{
+			liveDispatcher.addEventListener(Event.ENTER_FRAME, listener, useCapture, priority, useWeakReference);
+			onAdd();
+		}
+		
+		// Replace enterframe listener removal in your active code with this call.
+		public static function removeEnterFrameListener(listener:Function, useCapture:Boolean=false):void
+		{
+			liveDispatcher.removeEventListener(Event.ENTER_FRAME, listener, useCapture);
+			onRemove();
+		}
+		
+		// Engine patches should use this method instead to listen for enterframe.
+		// (Dispatched when frozen. If using outside of an animation engine be forewarned that a rapid series of events are fired for each motion-blur cycle.)
+		public static function addEngineListener(listener:Function, useCapture:Boolean=false, priority:int=0, useWeakReference:Boolean=false):void
+		{
+			engineDispatcher.addEventListener(Event.ENTER_FRAME, listener, useCapture, priority, useWeakReference);
+			onAdd();
+		}
+		
+		// Engine patches should use this method to remove enterframe listeners.
+		public static function removeEngineListener(listener:Function, useCapture:Boolean=false):void
+		{
+			engineDispatcher.removeEventListener(Event.ENTER_FRAME, listener, useCapture);
+			onRemove();
+		}
+		
+		// -== Time control methods used by FilmStrip ==-
 		
 		public static function freeze():void {
 			pulseShape.removeEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
 			timer.pause();
 			frozen = true;
-		}
-		
-		public static function getCurrentTime():int {
-			return timer.milliseconds;
 		}
 		
 		public static function advanceTime(milliseconds:int):void {
@@ -65,20 +88,25 @@ package com.animoto.filmstrip
 				pulseShape.addEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
 			}
 		}
-
-		public static function addEnterFrameListener(listener:Function, useCapture:Boolean=false, priority:int=0, useWeakReference:Boolean=false):void
-		{
-			dispatcher.addEventListener(Event.ENTER_FRAME, listener, useCapture, priority, useWeakReference);
+		
+		// -== Private ==-
+		
+		private static var timer: StopWatch = new StopWatch();
+		private static var pulseShape: Shape = new Shape();
+		private static var listening: Boolean = false;
+		private static var frozen: Boolean = false;
+		private static var engineDispatcher: EventDispatcher = new EventDispatcher();
+		private static var liveDispatcher: EventDispatcher = new EventDispatcher();
+		
+		private static function onAdd():void {
 			listening = true;
 			pulseShape.addEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
 			if (!frozen)
 				timer.start();
 		}
 		
-		public static function removeEnterFrameListener(listener:Function, useCapture:Boolean=false):void
-		{
-			dispatcher.removeEventListener(Event.ENTER_FRAME, listener, useCapture);
-			if (dispatcher.hasEventListener(Event.ENTER_FRAME)==false) {
+		private static function onRemove():void {
+			if (engineDispatcher.hasEventListener(Event.ENTER_FRAME)==false) {
 				listening = false;
 				pulseShape.addEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
 			}
@@ -87,7 +115,10 @@ package com.animoto.filmstrip
 		}
 		
 		private static function dispatchEnterFrame(e:Event=null):void {
-			dispatcher.dispatchEvent(new Event(Event.ENTER_FRAME));
+			// This event order should work in 99.9% of cases.
+			engineDispatcher.dispatchEvent(new Event(Event.ENTER_FRAME));
+			if (!frozen)
+				liveDispatcher.dispatchEvent(new Event(Event.ENTER_FRAME));
 		}
 	}
 }

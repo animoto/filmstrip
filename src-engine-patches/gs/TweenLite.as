@@ -286,7 +286,7 @@ package gs {
 				
 				
 				currentTime = PulseControl.getCurrentTime();
-				PulseControl.addEnterFrameListener(updateAll, false, 0, true);
+				PulseControl.addEngineListener(updateAll, false, 0, true);
 				if (overwriteManager == null) {
 					overwriteManager = {mode:1, enabled:false};
 				}			

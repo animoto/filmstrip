@@ -1,6 +1,6 @@
 package com.animoto.filmstrip
 {
-	import com.animoto.filmstrip.scenes.FilmStripSceneBase;
+	import com.animoto.filmstrip.scenes.FilmStripScene;
 	
 	import flash.utils.Dictionary;
 	
@@ -13,7 +13,7 @@ package com.animoto.filmstrip
 	public class FilmStripSceneController
 	{
 		public var filmStrip:FilmStrip;
-		public var scene:FilmStripSceneBase;
+		public var scene:FilmStripScene;
 		public var currentTime:int;
 		
 		protected var renderCallback:Function;
@@ -21,7 +21,7 @@ package com.animoto.filmstrip
 		protected var motionBlurs: Array;
 		protected var motionBlurIndex: int;
 		
-		public function FilmStripSceneController(scene: FilmStripSceneBase)
+		public function FilmStripSceneController(scene: FilmStripScene)
 		{
 			this.scene = scene;
 		}
@@ -33,13 +33,18 @@ package com.animoto.filmstrip
 		}
 		
 		public function stopRendering():void {
-			renderCallback = null;
-			filmStrip = null;
 			motionBlurs = null;
 			for each (var blur:MotionBlurController in motionBlurRetainer) {
 				blur.destroy();
 			}
 			motionBlurRetainer = null;
+		}
+		
+		public function destroy():void {
+			stopRendering();
+			filmStrip = null;
+			renderCallback = null;
+			scene = null;
 		}
 		
 		public function renderFrame(currentTime:int):void {

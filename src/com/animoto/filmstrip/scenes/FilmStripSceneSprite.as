@@ -4,17 +4,16 @@ package com.animoto.filmstrip.scenes
 	import com.mosesSupposes.util.SelectiveDrawBase;
 	
 	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
 	import flash.display.Sprite;
-	
-	import org.papervision3d.core.proto.DisplayObjectContainer3D;
-	import org.papervision3d.objects.DisplayObject3D;
 	
 	/**
 	 * See FilmStripSceneBase for documentation.
 	 * 
 	 * @author moses gunesch
 	 */
-	public class FilmStripSceneSprite extends FilmStripSceneBase
+	public class FilmStripSceneSprite extends FilmStripScene
 	{
 		public var sprite: Sprite;
 		
@@ -36,7 +35,7 @@ package com.animoto.filmstrip.scenes
 		}
 		
 		override public function getSelectiveDrawUtil(data:BitmapData):SelectiveDrawBase {
-			return new SelectiveBitmapDraw(data, scene3D, camera, viewport, renderer);
+			return new SelectiveBitmapDraw(data, sprite);
 		}
 		
 		protected function inventory(container:DisplayObjectContainer):Array {
