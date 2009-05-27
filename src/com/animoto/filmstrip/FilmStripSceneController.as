@@ -48,7 +48,7 @@ package com.animoto.filmstrip
 			this.motionBlurRetainer = new Dictionary(true);
 			
 			if (filmStrip.captureMode==FilmStripCaptureMode.WHOLE_SCENE) {
-				var sceneBlur:MotionBlurController = new MotionBlurController(this, scene);
+				var sceneBlur:MotionBlurController = newMotionBlur(scene);
 				motionBlurs = [ sceneBlur ];
 				motionBlurRetainer[ scene ] = sceneBlur;
 				sceneBlur.render();
@@ -58,13 +58,20 @@ package com.animoto.filmstrip
 			}
 		}
 		
+		protected function newMotionBlur(target:Object):MotionBlurController {
+			if (filmStrip.blurMode==FilmStripBlurMode.MATTE_SUBFRAMES) {
+				return new MotionBlurCtrlMatte(this, target);
+			}
+			return new MotionBlurController(this, target);
+		}
+		
 		protected function setupMotionBlur():void {
 			motionBlurs = new Array();
 			var blur: MotionBlurController;
 			var children:Array = scene.getVisibleChildren();
 			for each (var child:Object in children) {
 				if (motionBlurRetainer[child]==null) {
-					blur = new MotionBlurController(this, child);
+					blur = newMotionBlur(child);
 					motionBlurRetainer[child] = blur;
 					motionBlurs.push(blur);
 				}

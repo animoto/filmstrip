@@ -30,7 +30,6 @@ package com.animoto.filmstrip
 		protected var subframes: int;
 		protected var index: int;
 		protected var delay: int;
-		protected var captureSubframe: Function;
 		protected var primaryOnly: Boolean = false;
 		protected var wholeScene: Boolean = false;
 		
@@ -44,31 +43,20 @@ package com.animoto.filmstrip
 				buffer = new Timer(delay, 1);
 				buffer.addEventListener(TimerEvent.TIMER_COMPLETE, nextSubFrame);
 			}
+			wholeScene = (controller.filmStrip.captureMode == FilmStripCaptureMode.WHOLE_SCENE);
+			if (controller.filmStrip.blurMode == FilmStripBlurMode.NONE) {
+				primaryOnly = true;
+			}
+			else if (wholeScene && !useFixedFrameCount && maxFrames>1) {
+				FilmStrip.error("You must set MotionBlurSettings.usefixedFrameCount to true for WHOLE_SCENE captureMode.");
+			}
+			
+			// Correct static settings.
 			threshold = Math.max(1, threshold);
 			subframeDuration = Math.max(1, subframeDuration);
 			peakAlpha = Math.min(1, Math.max(0, peakAlpha));
 			maxFrames = Math.max(1, maxFrames);
-			// For now offset is limited to -1 or 1.
-			offset = (offset > 0 ? 1 : -1);
-				
-			wholeScene = (controller.filmStrip.captureMode == FilmStripCaptureMode.WHOLE_SCENE);
-			switch (controller.filmStrip.blurMode) {
-				case FilmStripBlurMode.NONE:
-					primaryOnly = true;
-					break;
-					
-				case FilmStripBlurMode.SPLIT_SUBFRAMES:
-					captureSubframe = captureSplit;
-					break;
-					
-				case FilmStripBlurMode.MATTE_SUBFRAMES:
-					captureSubframe = captureMatte;
-					break;
-			}
-			
-			if (!primaryOnly && wholeScene && !useFixedFrameCount && maxFrames>1) {
-				FilmStrip.error("You must set MotionBlurSettings.usefixedFrameCount to true for WHOLE_SCENE captureMode.");
-			}
+			offset = (offset > 0 ? 1 : -1); // For now.
 		}
 		
 		public function render():void {
@@ -85,7 +73,7 @@ package com.animoto.filmstrip
 			// estimate how many subframes we'll need based on amount of animation and capture primary frame.
 			PulseControl.setTime(controller.currentTime);
 			setSubframes();
-			capturePrimary();
+			capturePrimaryFrame();
 			
 			if (primaryOnly || subframes==0) {
 				complete();
@@ -107,7 +95,7 @@ package com.animoto.filmstrip
 			
 			// Update animation and capture subframe.
 			PulseControl.setTime(controller.currentTime + (subframeDuration * index * offset));
-			captureSubframe(); // Calls captureSplit or captureMatte depending on mode.
+			captureSubframe();
 			controller.subframeComplete(this, index, false);
 			
 			if (delay > 0) {
@@ -134,7 +122,16 @@ package com.animoto.filmstrip
 			}
 		}
 		
-		protected function capturePrimary():void {
+		protected function currentAlpha():Number {
+			return Math.max(0.05, peakAlpha - (peakAlpha/subframes) * index);
+		}
+		
+		protected function currentBoxBlur():BlurFilter {
+			var boxamt:Number = (Math.min(index * boxBlurMultiplier + boxBlurRange.x, boxBlurRange.y));
+			return new BlurFilter(boxamt, boxamt, 1);
+		}
+		
+		protected function capturePrimaryFrame():void {
 			refreshDrawUtil();
 			if (wholeScene) {
 				controller.scene.redrawScene();
@@ -151,16 +148,7 @@ package com.animoto.filmstrip
 			container.addChild(bitmap);
 		}
 		
-		protected function currentAlpha():Number {
-			return Math.max(0.05, peakAlpha - (peakAlpha/subframes) * index);
-		}
-		
-		protected function currentBoxBlur():BlurFilter {
-			var boxamt:Number = (Math.min(index * boxBlurMultiplier + boxBlurRange.x, boxBlurRange.y));
-			return new BlurFilter(boxamt, boxamt, 1);
-		}
-		
-		protected function captureSplit():void {
+		protected function captureSubframe():void {
 			controller.scene.redrawScene();
 			refreshDrawUtil();
 			drawUtil.bitmapData.draw(drawUtil.drawSource);
@@ -185,47 +173,18 @@ package com.animoto.filmstrip
 			drawUtil.bitmapData = null;
 		}
 		
-		protected function captureMatte():void {
-			controller.scene.redrawScene();
-			
-			var ct:ColorTransform = new ColorTransform(1, 1, 1, currentAlpha());
-			var filters:Array = controller.scene.getFilters(target);
-			
-			var bd:BitmapData = newBitmapData();
-			bd.draw(drawUtil.drawSource);
-			if (filters==null) {
-				filters = [];
-			}
-			else {
-				filters = filters.slice();
-			}
-			if (applyBoxBlur) {
-				filters.push(currentBoxBlur());
-			}
-			var p:Point = new Point(0,0);
-			for each (var filter:BitmapFilter in filters) {
-				bd.applyFilter(bd, drawUtil.bitmapData.rect, p, filter);
-			}
-			drawUtil.bitmapData.draw(bd, null, ct, blendMode);
-		}
-		
 		protected function setSubframes():void {
-			
 			if (useFixedFrameCount) {
 				subframes = fixedFrameCount;
 				return;
 			}
-			
 			var strengthMultiplier: Number = 0.02; // Allows strength to be a more intuitive value where 1 is normal.
-			
 			var delta:int = deltaMgr.getCompoundDelta();
-			
 			var frameRateMult: Number = controller.filmStrip.frameRate / 30; // adjust for current render framerate, using a constant of 30fps (approximates video standard)
-			
 			subframes = Math.min(maxFrames-1, (delta * frameRateMult * strength * strengthMultiplier));
-			
-			if (subframes<threshold)
+			if (subframes<threshold) {
 				subframes = 0;
+			}
 			
 			//if (delta > 0) { trace("target:"+target,"delta:" + delta, "subframes:" + subframes); }
 			
@@ -245,9 +204,6 @@ package com.animoto.filmstrip
 			}
 		}
 		
-		/**
-		 * A single drawUtil is reused to cut down on object creation.
-		 */
 		protected function refreshDrawUtil():void {
 			if (drawUtil==null) {
 				drawUtil = controller.scene.getSelectiveDrawUtil(newBitmapData());

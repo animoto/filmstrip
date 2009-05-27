@@ -6,6 +6,21 @@ package com.animoto.filmstrip
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	
+	/**
+	 * External time controller that can be easily patched into 
+	 * animation engines and other pulse-based code.
+	 * 
+	 * To enable it: 
+	 * 
+	 * 1) Replace obj.addEventListener(Event.ENTER_FRAME, handler) 
+	 * with PulseControl.addEnterFrameListener(handler), and do 
+	 * similar for remove.
+	 * 
+	 * 2) Replace all getTimer() (or new Date().getTime()) calls 
+	 * with PulseControl.getCurrentTime().
+	 * 
+	 * @author moses gunesch
+	 */
 	public class PulseControl
 	{
 		private static var timer: StopWatch = new StopWatch();

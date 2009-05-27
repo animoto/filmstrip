@@ -8,6 +8,15 @@ package com.animoto.filmstrip
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
 
+	/**
+	 * Renders a 2D or 3D scene to frames of simulated video, with options
+	 * for adding motion blur and bitmap effects.
+	 * 
+	 * Important! You need to apply the PulseControl patch to your animation 
+	 * system for the FilmStrip rendering system to work. 
+	 * 
+	 * @author moses gunesch
+	 */
 	public class FilmStrip extends EventDispatcher
 	{
 
