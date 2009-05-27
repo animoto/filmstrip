@@ -31,9 +31,17 @@ package {
 			super();
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
-			dice = new OverlappingDice();
+			
+			
+			// Working animations:
+			
+			dice = new Dice();
+//			dice = new OverlappingDice();
+			
+			
 			addChild(dice);
-			stage.addEventListener(MouseEvent.CLICK, start);
+			stage.addEventListener(MouseEvent.CLICK, start); // click to start if line below is commented. 
+															// when running, click to stop.
 			
 			// Comment out to start on click instead.
 			dice.addEventListener(Event.COMPLETE, start);
@@ -58,27 +66,6 @@ package {
 			f.durationInSeconds = 3;
 			f.frameRate = 30;
 			
-			
-			
-			
-			
-			
-			// -== notes ==-
-			
-			// Need a 2D animated scene -- ready to test!
-			// Need to do a test w/ photo -- prove premult issue!
-			//  - Decide on matted frames or not based on photo test
-			// FrameDump: maybe revamp if time
-			// Tree structured objects should work -- wishlist item.
-			//  - Need to add parent transforms to delta in this build
-			
-			
-			
-			
-			
-			
-			
-			
 			// --== Tests ==--
 			
 			// FILTERS (use OverlappingDice for better illustration)
@@ -90,6 +77,7 @@ package {
 
 //			f.blurMode = FilmStripBlurMode.NONE;
 //			f.blurMode = FilmStripBlurMode.MATTE_SUBFRAMES;
+			
 			
 			// WHOLE_SCENE (shows issue with overlapping, matting)
 //			f.blurMode = FilmStripBlurMode.MATTE_SUBFRAMES;
@@ -127,5 +115,16 @@ package {
 			outputDisplay.removeChild(f.bitmapScene);
 			outputDisplay.scaleX = outputDisplay.scaleY = 1;
 		}
+		
+		
+		// -== notes ==-
+		
+		// Need a 2D animated scene -- ready to test!
+		// Need to do a test w/ photo -- prove premult issue!
+		//  - Decide on matted frames or not based on photo test
+		// FrameDump: maybe revamp if time
+		// Tree structured objects should work -- test.
+		//  - Need to add parent transforms to delta in this build
+		
 	}
 }
