@@ -1,6 +1,4 @@
 package {
-	import caurina.transitions.Tweener;
-	
 	import com.animoto.filmstrip.PulseControl;
 	import com.zaaz.goasap.core.PositionTween;
 	
@@ -11,8 +9,8 @@ package {
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	
-	import mx.effects.easing.Elastic;
-
+	import gs.easing.Elastic;
+	
 	[SWF(backgroundColor="#FFFFFF", frameRate="30")]
 	
 	public class GoPatchTest extends Sprite

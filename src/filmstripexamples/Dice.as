@@ -7,6 +7,7 @@ package filmstripexamples
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.filters.BitmapFilter;
+	import flash.filters.BlurFilter;
 	
 	import org.papervision3d.cameras.Camera3D;
 	import org.papervision3d.core.proto.LightObject3D;
@@ -120,7 +121,7 @@ package filmstripexamples
 			
 			var faces:Array = new Array();
 			for (var i:int=0; i<6; i++) {
-				var face:BitmapFileMaterial = new BitmapFileMaterial("filmstripexamples/red"+(i+1)+".png", false);
+				var face:BitmapFileMaterial = new BitmapFileMaterial("./filmstripexamples/red"+(i+1)+".png", false);
 				face.addEventListener(FileLoadEvent.LOAD_COMPLETE, faceLoaded);
 				face.oneSide = false;
 				face.smooth = true;
@@ -141,10 +142,13 @@ package filmstripexamples
 			_cube2.x = -600;
 			_cube2.y = 600;
 			
-//			_floor.useOwnContainer = true;
+			var soften:BlurFilter = new BlurFilter(1, 1, 1);
 //			_cube1.useOwnContainer = true;
 //			_cube2.useOwnContainer = true;
-//			_floor.alpha = 0.5;
+//			_floor.useOwnContainer = true;
+//			_cube1.filters = [soften];
+//			_cube2.filters = [soften];
+//			_floor.filters = [soften];
 			
 			scene.addChild(_cube1);
 			scene.addChild(_cube2);

@@ -1,6 +1,6 @@
 package com.animoto.filmstrip
 {
-	import com.animoto.filmstrip.scenes.IFilmStripScene;
+	import com.animoto.filmstrip.scenes.FilmStripSceneBase;
 	import com.animoto.util.StopWatch;
 	
 	import flash.display.BitmapData;
@@ -48,7 +48,7 @@ package com.animoto.filmstrip
 		protected var _clock: StopWatch = new StopWatch();
 		protected var _frameCount: int;
 		
-		public function FilmStrip(scene:IFilmStripScene)
+		public function FilmStrip(scene:FilmStripSceneBase)
 		{
 			super();
 			addScene( scene );
@@ -56,12 +56,12 @@ package com.animoto.filmstrip
 			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, doRenderNext);
 		}
 		
-		public function addScene(scene:IFilmStripScene):void {
+		public function addScene(scene:FilmStripSceneBase):void {
 			scenes.push( scene );
 		}
 		
-		public function getSceneAt(index:int):IFilmStripScene {
-			return scenes[index] as IFilmStripScene;
+		public function getSceneAt(index:int):FilmStripSceneBase {
+			return scenes[index] as FilmStripSceneBase;
 		}
 		
 		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, blurMode:String=null, captureMode:String=null, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
@@ -104,14 +104,15 @@ package com.animoto.filmstrip
 		public function stopRendering():void {
 			if (_busy) {
 				_clock.pause();
-				trace("Time elapsed: "+_clock.seconds+" seconds for "+_frameCount+" frames. ("+Number(_clock.seconds/_frameCount).toFixed(1)+" seconds per frame)");
+				trace("Time elapsed: "+_clock.seconds+" seconds "+ "for "+(_frameCount * frameRate / 1000).toFixed(1)+" seconds of video. " +
+						"("+_frameCount+" frames @ " + Number(_clock.seconds/_frameCount).toFixed(1)+" seconds/frame)");
 				dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED) );
 				PulseControl.resume(); // unfreezes time for animation engines
 			}
 			bitmapScene.clearDisplay();
 			_buffer.reset();
 			if (_busy) {
-				try { (scenes[_index] as IFilmStripScene).controller.stopRendering(); }
+				try { (scenes[_index] as FilmStripSceneBase).controller.stopRendering(); }
 				catch (e:Error) { }
 			}
 			_index = 0;
@@ -129,17 +130,13 @@ package com.animoto.filmstrip
 		// -== Private Methods ==-
 		
 		protected function renderNextScene():void {
-			if (bufferMilliseconds==0) {
-				doRenderNext();
-			}
-			else {
-				_buffer.delay = bufferMilliseconds;
-				_buffer.start();
-			}
+			// even when buffer is 0, this helps decouple processes a little and prevent player lock-up.
+			_buffer.delay = bufferMilliseconds;
+			_buffer.start();
 		}
 		
 		protected function doRenderNext(event:TimerEvent=null):void {
-			var scene:IFilmStripScene = (scenes[_index] as IFilmStripScene);
+			var scene:FilmStripSceneBase = (scenes[_index] as FilmStripSceneBase);
 			if (scene==null) {
 				error("Scene not valid.");
 				if (!throwErrors) {

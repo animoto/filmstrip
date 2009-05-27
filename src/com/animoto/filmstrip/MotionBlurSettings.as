@@ -25,7 +25,7 @@ package com.animoto.filmstrip
 		public static var strength:Number = 1;
 		
 		/**
-		 * Maximum number of subframes any blur can generate.
+		 * Maximum number of frames any blur can generate (1 or more).
 		 */
 		public static var maxFrames:uint = 16;
 		
@@ -39,17 +39,18 @@ package com.animoto.filmstrip
 		 * Use -1 or 1 for either a trailing blur or "forward" blur, respectively.
 		 * (Wish list item: allow in-between values to pan blur in both directions)
 		 */
-		public static var offset: Number = -1;
+		public static var offset: Number = -1.0;
 		
 		/**
-		 * Typically NORMAL, or LIGHTEN works well with dark backgrounds and matted subframes.
+		 * Typically NORMAL works although subframes can have the effect of darkening
+		 * the target -- LIGHTEN looks pretty good when matting subframes.
 		 */
 		public static var blendMode: String = BlendMode.NORMAL;
 
 		/**
 		 * Maximum amount of alpha for the first subframe; others will be less (0-1).
 		 */
-		public static var peakAlpha: Number = 0.5;
+		public static var peakAlpha: Number = 0.25;
 		
 		/**
 		 * A standard BlurFilter applied to each capture softens edges of subframes.
@@ -59,7 +60,7 @@ package com.animoto.filmstrip
 		/**
 		 * Low and high limits for box blur, if applyBoxBlur is true.
 		 */
-		public static var boxBlurRange: Point = new Point(1.5, 3);
+		public static var boxBlurRange: Point = new Point(1.5, 3.0);
 		
 		/**
 		 * Subframe step multiplier for box blur, if applyBoxBlur is true.
@@ -79,6 +80,6 @@ package com.animoto.filmstrip
 		/**
 		 * Subframes required for blur to be processed (1 or higher), usefixedFrameCount is false.
 		 */
-		public static var threshold:int = 10;
+		public static var threshold:int = 1;
 	}
 }

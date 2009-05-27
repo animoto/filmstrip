@@ -1,13 +1,19 @@
 package com.animoto.filmstrip
 {
-	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
+	import com.animoto.filmstrip.scenes.FilmStripSceneBase;
 	
 	import flash.utils.Dictionary;
 	
+	/**
+	 * Requests a list of visible children from the scene, then generates
+	 * a MotionBlurController for each child object and sequences render.
+	 * 
+	 * @author moses gunesch
+	 */
 	public class FilmStripSceneController
 	{
 		public var filmStrip:FilmStrip;
-		public var scene:FilmStripScenePV3D; // TODO: retype to IFilmStripScene!!!
+		public var scene:FilmStripSceneBase;
 		public var currentTime:int;
 		
 		protected var renderCallback:Function;
@@ -15,7 +21,7 @@ package com.animoto.filmstrip
 		protected var motionBlurs: Array;
 		protected var motionBlurIndex: int;
 		
-		public function FilmStripSceneController(scene: *) // TODO: retype to IFilmStripScene!!!
+		public function FilmStripSceneController(scene: FilmStripSceneBase)
 		{
 			this.scene = scene;
 		}
@@ -42,7 +48,7 @@ package com.animoto.filmstrip
 			this.motionBlurRetainer = new Dictionary(true);
 			
 			if (filmStrip.captureMode==FilmStripCaptureMode.WHOLE_SCENE) {
-				var sceneBlur:MotionBlurController = new MotionBlurController(this, null);
+				var sceneBlur:MotionBlurController = new MotionBlurController(this, scene);
 				motionBlurs = [ sceneBlur ];
 				motionBlurRetainer[ scene ] = sceneBlur;
 				sceneBlur.render();
@@ -53,10 +59,10 @@ package com.animoto.filmstrip
 		}
 		
 		protected function setupMotionBlur():void {
-			scene.inventoryObjects();
 			motionBlurs = new Array();
 			var blur: MotionBlurController;
-			for each (var child:Object in scene.visibleChildren) {
+			var children:Array = scene.getVisibleChildren();
+			for each (var child:Object in children) {
 				if (motionBlurRetainer[child]==null) {
 					blur = new MotionBlurController(this, child);
 					motionBlurRetainer[child] = blur;
