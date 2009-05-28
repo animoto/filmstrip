@@ -16,16 +16,18 @@ package {
 	
 	public class FilmStripExample extends Sprite
 	{
-		private var dice:Dice;
-		private var f:FilmStrip;
-		private var playbackBitmap:PlaybackFromRAM;
-		private var outputDisplay:Sprite;
+		public var dice:Dice;
+		public var f:FilmStrip;
+		public var playbackBitmap:PlaybackFromRAM;
+		public var outputDisplay:Sprite;
 		
 		public function FilmStripExample()
 		{
 			super();
-			stage.scaleMode = StageScaleMode.NO_SCALE;
-			stage.align = StageAlign.TOP_LEFT;
+			if (stage!=null) { // stage not present if this class is added as a child (e.g. framedumper example)
+				stage.scaleMode = StageScaleMode.NO_SCALE;
+				stage.align = StageAlign.TOP_LEFT;
+			}
 			
 			
 			// Working animations:
@@ -37,7 +39,7 @@ package {
 			dice.addEventListener(Event.COMPLETE, startAnimation);
 		}
 		
-		private function startAnimation(event:Event):void {
+		public function startAnimation(event:Event):void {
 			stage.addEventListener(MouseEvent.CLICK, start); // click to start if line below is commented. 
 															// when running, click to stop.
 			
@@ -45,7 +47,7 @@ package {
 			start();
 		}
 		
-		private function start(event:Event=null): void {
+		public function start(event:Event=null): void {
 			
 			if (f!=null) {
 				if (f.rendering) {
@@ -111,9 +113,10 @@ package {
 			addChild(outputDisplay);
 			
 			f.startRendering();
+			dispatchEvent(new Event("starting")); // for frameDumper project
 		}
 		
-		private function resize(event:FilmStripEvent):void {
+		public function resize(event:FilmStripEvent):void {
 			removeChild(dice);
 			outputDisplay.removeChild(f.bitmapScene);
 			outputDisplay.scaleX = outputDisplay.scaleY = 1;

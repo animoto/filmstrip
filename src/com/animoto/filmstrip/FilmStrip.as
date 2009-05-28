@@ -107,15 +107,18 @@ package com.animoto.filmstrip
 			_clock.reset();
 			_clock.start();
 			_busy = true;
+			dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STARTED) );
 			doRenderNext();
 		}
 		
 		public function stopRendering():void {
 			if (_busy) {
 				_clock.pause();
-				trace("Time elapsed: "+_clock.seconds+" seconds "+ "for "+(_frameCount * frameRate / 1000).toFixed(1)+" seconds of video. " +
-						"("+_frameCount+" frames @ " + Number(_clock.seconds/_frameCount).toFixed(1)+" seconds/frame)");
-				dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED) );
+				var stats: String = "Time elapsed: "+_clock.seconds+" seconds "+
+									 "for "+(_frameCount * frameRate / 1000).toFixed(1)+" seconds of video. " +
+									"("+_frameCount+" frames @ " + (_clock.seconds/_frameCount).toFixed(1)+" seconds/frame)";
+				trace(stats);
+				dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED, null, stats) );
 				PulseControl.resume(); // unfreezes time for animation engines
 			}
 			bitmapScene.clearDisplay();
