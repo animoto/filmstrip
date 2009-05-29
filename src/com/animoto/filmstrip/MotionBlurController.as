@@ -6,10 +6,7 @@ package com.animoto.filmstrip
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.TimerEvent;
-	import flash.filters.BitmapFilter;
 	import flash.filters.BlurFilter;
-	import flash.geom.ColorTransform;
-	import flash.geom.Point;
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
@@ -22,33 +19,30 @@ package com.animoto.filmstrip
 	{
 		public var container:Sprite;
 		public var target: Object;
+		public var deltaMgr: DeltaManager;
+		public var subframes: int;
 		
 		protected var controller: FilmStripSceneController;
-		protected var deltaMgr: DeltaManager;
 		protected var drawUtil: SelectiveDrawBase;
 		protected var buffer: Timer;
-		protected var subframes: int;
 		protected var index: int;
 		protected var delay: int;
 		protected var primaryOnly: Boolean = false;
 		protected var wholeScene: Boolean = false;
 		
-		public function MotionBlurController(controller:FilmStripSceneController, target:Object)
+		public function MotionBlurController(controller:FilmStripSceneController, target:Object, wholeScene:Boolean)
 		{
 			this.controller = controller;
 			this.target = target;
+			this.wholeScene = wholeScene;
 			deltaMgr = new DeltaManager(target);
 			delay = controller.filmStrip.subframeBufferMilliseconds;
 			if (delay > 0) {
 				buffer = new Timer(delay, 1);
 				buffer.addEventListener(TimerEvent.TIMER_COMPLETE, nextSubFrame);
 			}
-			wholeScene = (controller.filmStrip.captureMode == FilmStripCaptureMode.WHOLE_SCENE);
 			if (controller.filmStrip.blurMode == FilmStripBlurMode.NONE) {
 				primaryOnly = true;
-			}
-			else if (wholeScene && !useFixedFrameCount && maxFrames>1) {
-				FilmStrip.error("You must set MotionBlurSettings.usefixedFrameCount to true for WHOLE_SCENE captureMode.");
 			}
 			
 			// Correct static settings.
@@ -60,21 +54,11 @@ package com.animoto.filmstrip
 		}
 		
 		public function render():void {
+			// subframes are precalculated by controller.
 			index = 0;
 			newContainer();
-			PulseControl.freeze(); // safety
-			
-			// animate to previous or next frame and set up delta.
-			PulseControl.setTime(controller.currentTime + (controller.filmStrip.frameDuration * offset));
-			if ( !useFixedFrameCount && !primaryOnly ) {
-				deltaMgr.recordStartValues();
-			}
-			
-			// estimate how many subframes we'll need based on amount of animation and capture primary frame.
 			PulseControl.setTime(controller.currentTime);
-			setSubframes();
 			capturePrimaryFrame();
-			
 			if (primaryOnly || subframes==0) {
 				complete();
 			}
@@ -171,24 +155,6 @@ package com.animoto.filmstrip
 			
 			container.addChild(bitmap);
 			drawUtil.bitmapData = null;
-		}
-		
-		protected function setSubframes():void {
-			if (useFixedFrameCount) {
-				subframes = fixedFrameCount;
-				return;
-			}
-			var strengthMultiplier: Number = 0.02; // Allows strength to be a more intuitive value where 1 is normal.
-			var delta:int = deltaMgr.getCompoundDelta();
-			var frameRateMult: Number = controller.filmStrip.frameRate / 30; // adjust for current render framerate, using a constant of 30fps (approximates video standard)
-			subframes = Math.min(maxFrames-1, (delta * frameRateMult * strength * strengthMultiplier));
-			if (subframes<threshold) {
-				subframes = 0;
-			}
-			
-			//if (delta > 0) { trace("target:"+target,"delta:" + delta, "subframes:" + subframes); }
-			
-			// TODO: factor camera3D movement into compound delta..?
 		}
 		
 		protected function complete():void {

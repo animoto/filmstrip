@@ -11,6 +11,7 @@ package com.animoto.filmstrip
 		public static var props: String = "x|y|z|rotationX|rotationY|rotationZ|zoom|focus";
 		
 		public var target: Object;
+		public var lastDelta: Number = 0;
 		
 		public var starts: Object = new Object();
 		public var deltas: Object = new Object();
@@ -36,7 +37,7 @@ package com.animoto.filmstrip
 			}
 		}
 		
-		public function getCompoundDelta():int {
+		public function getCompoundDelta():Number {
 			var cd:Number = 0;
 			for (var prop:String in starts) {
 				var delta:Number = Math.abs( target[prop] - starts[prop] );
@@ -44,8 +45,10 @@ package com.animoto.filmstrip
 				if (prop.indexOf("rotation")==0) {
 					delta *= rotationMultiplier;
 				}
+				//trace(target,prop,delta);
 				cd += delta;
 			}
+			lastDelta = cd;
 			return cd;
 		}
 	}

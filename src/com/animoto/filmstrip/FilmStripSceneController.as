@@ -17,9 +17,11 @@ package com.animoto.filmstrip
 		public var currentTime:int;
 		
 		protected var renderCallback:Function;
-		protected var motionBlurRetainer: Dictionary;
+		protected var motionBlurRetainer: Dictionary = new Dictionary(true);
+		protected var deltas: Dictionary = new Dictionary(false);
 		protected var motionBlurs: Array;
 		protected var motionBlurIndex: int;
+		protected var sceneBlur: MotionBlurController;
 		
 		public function FilmStripSceneController(scene: FilmStripScene)
 		{
@@ -30,6 +32,7 @@ package com.animoto.filmstrip
 			this.filmStrip = filmStrip;
 			this.renderCallback = renderCallback;
 			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, filmstripRenderStopped, false, 0, true);
+			this.sceneBlur = newMotionBlur(scene, true);
 		}
 		
 		public function stopRendering():void {
@@ -37,6 +40,7 @@ package com.animoto.filmstrip
 			for each (var blur:MotionBlurController in motionBlurRetainer) {
 				blur.destroy();
 			}
+			sceneBlur.destroy();
 			motionBlurRetainer = null;
 		}
 		
@@ -50,33 +54,62 @@ package com.animoto.filmstrip
 		public function renderFrame(currentTime:int):void {
 			//trace("renderFrame");
 			this.currentTime = currentTime;
-			this.motionBlurRetainer = new Dictionary(true);
 			
+			// MotionBlurControllers are used for capture even when there are no subframes.
 			if (filmStrip.captureMode==FilmStripCaptureMode.WHOLE_SCENE) {
-				var sceneBlur:MotionBlurController = newMotionBlur(scene);
-				motionBlurs = [ sceneBlur ];
-				motionBlurRetainer[ scene ] = sceneBlur;
-				sceneBlur.render();
+				if (!MotionBlurSettings.useFixedFrameCount && MotionBlurSettings.maxFrames > 1) {
+					FilmStrip.error("You must set MotionBlurSettings.usefixedFrameCount to true for WHOLE_SCENE captureMode.");
+				}
+				singleCapture();
 			}
 			else {
-				setupMotionBlur();
+				setupMultiCapture();
 			}
 		}
 		
-		protected function newMotionBlur(target:Object):MotionBlurController {
+		protected function singleCapture():void {
+			motionBlurs = [ sceneBlur ];
+			scene.redrawScene();
+			sceneBlur.render();
+		}
+		
+		protected function newMotionBlur(target:Object, wholeScene:Boolean):MotionBlurController {
 			if (filmStrip.blurMode==FilmStripBlurMode.MATTE_SUBFRAMES) {
-				return new MotionBlurCtrlMatte(this, target);
+				return new MotionBlurCtrlMatte(this, target, wholeScene);
 			}
-			return new MotionBlurController(this, target);
+			return new MotionBlurController(this, target, wholeScene);
 		}
 		
-		protected function setupMotionBlur():void {
+		protected function setupMultiCapture():void {
+			
+			// In many cases this step is really only needed once, but it keeps us synced as objects enter and leave the scene.
+			makeBlurControllers();
+			
+			if (motionBlurs.length == 0) {
+				trace("scene empty in this frame.");
+				complete();
+				return;
+			}
+			if ( MotionBlurSettings.useFixedFrameCount == false ) {
+				var totalSubframes:int = precalcSubframes();
+				if (totalSubframes == 0) {
+					trace("Reverted to single capture - no blur in this frame.");
+					singleCapture();
+					return;
+				}
+			}
+			motionBlurIndex = -1;
+			renderNextBlur();
+		}
+		
+		protected function makeBlurControllers():void {
 			motionBlurs = new Array();
 			var blur: MotionBlurController;
 			var children:Array = scene.getVisibleChildren();
+			
 			for each (var child:Object in children) {
-				if (motionBlurRetainer[child]==null) {
-					blur = newMotionBlur(child);
+				if (child.visible && motionBlurRetainer[child]==null) {
+					blur = newMotionBlur(child, false);
 					motionBlurRetainer[child] = blur;
 					motionBlurs.push(blur);
 				}
@@ -84,19 +117,35 @@ package com.animoto.filmstrip
 					motionBlurs.push(motionBlurRetainer[child]);
 				}
 			}
+			
+			// Clean up retainer
 			for each (blur in motionBlurRetainer) {
 				if (motionBlurs.indexOf(blur)==-1) {
 					motionBlurRetainer[blur.target].destroy();
 					delete motionBlurRetainer[blur.target];
 				}
 			}
-			if (motionBlurs.length > 0) {
-				motionBlurIndex = -1;
-				renderNextBlur();
+		}
+		
+		protected function precalcSubframes():int {
+			var blur: MotionBlurController;
+			var totalSubframes:int = 0;
+			var frameRate:int = filmStrip.frameRate;
+			
+			// animate to previous or next frame time then back to currentTime to get deltas.
+			// doing this centrally lets us check whether it's necessary to capture objects separately.
+			PulseControl.setTime( Math.max(0, currentTime + (filmStrip.frameDuration * MotionBlurSettings.offset)) );
+			for each (blur in motionBlurs) {
+				blur.deltaMgr.recordStartValues();
 			}
-			else {
-				complete();
+			PulseControl.setTime(currentTime);
+			var delta:Number;
+			for each (blur in motionBlurs) {
+				delta = blur.deltaMgr.getCompoundDelta();
+				blur.subframes = MotionBlurSettings.getSubframeCount(frameRate, delta);
+				totalSubframes += blur.subframes;
 			}
+			return totalSubframes;
 		}
 		
 		public function subframeComplete(blur:MotionBlurController, index:int, done:Boolean):void {

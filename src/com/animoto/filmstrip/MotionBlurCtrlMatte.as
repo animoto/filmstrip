@@ -13,9 +13,9 @@ package com.animoto.filmstrip
 	 */
 	public class MotionBlurCtrlMatte extends MotionBlurController
 	{
-		public function MotionBlurCtrlMatte(controller:FilmStripSceneController, target:Object)
+		public function MotionBlurCtrlMatte(controller:FilmStripSceneController, target:Object, wholeScene:Boolean)
 		{
-			super(controller, target);
+			super(controller, target, wholeScene);
 		}
 		
 		override protected function captureSubframe():void {

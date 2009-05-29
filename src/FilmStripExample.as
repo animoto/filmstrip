@@ -66,7 +66,7 @@ package {
 			f = new FilmStrip(scene);
 			f.addEventListener(FilmStripEvent.RENDER_STOPPED, resize);
 			f.backgroundColor = 0xf0ecaf;
-			f.bufferMilliseconds = 1;
+			f.bufferMilliseconds = 100;
 			f.subframeBufferMilliseconds = 0;
 			f.durationInSeconds = 3;
 			f.frameRate = 30;
