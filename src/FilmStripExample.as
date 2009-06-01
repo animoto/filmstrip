@@ -5,6 +5,8 @@ package {
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
 	import filmstripexamples.Dice;
+	import filmstripexamples.ExampleScene;
+	import filmstripexamples.OverlappingDice;
 	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -16,32 +18,39 @@ package {
 	
 	public class FilmStripExample extends Sprite
 	{
-		public var dice:Dice;
-		public var f:FilmStrip;
+		public var example:ExampleScene;
+		public var filmStrip:FilmStrip;
 		public var playbackBitmap:PlaybackFromRAM;
 		public var outputDisplay:Sprite;
 		
 		public function FilmStripExample()
 		{
 			super();
-			if (stage!=null) { // stage not present if this class is added as a child (e.g. framedumper example)
-				stage.scaleMode = StageScaleMode.NO_SCALE;
-				stage.align = StageAlign.TOP_LEFT;
-			}
-			
-			
-			// Working animations:
-			
-			dice = new Dice();
-//			dice = new OverlappingDice();
-			
-			addChild(dice);
-			dice.addEventListener(Event.COMPLETE, startAnimation);
+			addEventListener(Event.ADDED_TO_STAGE, setup);
 		}
 		
-		public function startAnimation(event:Event):void {
-			stage.addEventListener(MouseEvent.CLICK, start); // click to start if line below is commented. 
-															// when running, click to stop.
+		public function setup(event:Event):void {
+			stage.scaleMode = StageScaleMode.NO_SCALE;
+			stage.align = StageAlign.TOP_LEFT;
+			
+			// Uncomment one of these example scenes, then set up the filmstrip in step 2 of start() below.
+			
+//			example = new Dice();
+			example = new OverlappingDice();
+//			example = new Photos();
+			
+			addChild(example);
+			if (example.requiresLoad) {
+				example.addEventListener(Event.COMPLETE, startAnimation);
+			}
+			else {
+				startAnimation();
+			}
+		}
+		
+		public function startAnimation(event:Event=null):void {
+			stage.addEventListener(MouseEvent.CLICK, start); // click-to-start if line below is commented. 
+															 // also acts as click-to-stop during render.
 			
 			// Comment out to start on click instead.
 			start();
@@ -49,88 +58,136 @@ package {
 		
 		public function start(event:Event=null): void {
 			
-			if (f!=null) {
-				if (f.rendering) {
-					f.stopRendering();
+			if (filmStrip!=null) {
+				if (filmStrip.rendering) {
+					filmStrip.stopRendering();
 				}
 				return;
 			}
 			
+			// Filmstrip Tutorial:
+			
 			// 1. Patch your animation library to use PulseControl
 			//    (more info on this at http://labs.animoto.com soon, hopefully!)
 			
-			// 2. Wrap the scene to render in a new FilmStripScene
+			// 2. Wrap the scene to render in a new FilmStripScene. Use this one with Dice or OverlappingDice above...
+			var dice:Dice = example as Dice;
 			var scene:FilmStripScenePV3D = new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer);
+			//MotionBlurSettings.strength = 0.1; // The Dice 3D scenes require a lot less blur strength.
+			
+			// (2...)		-== Or, Sprite scene (uncomment Photos example above) ==-
+//			var scene:FilmStripSceneSprite = new FilmStripSceneSprite(example);
+			
 			
 			// 3. Make a FilmStrip with one or more scenes.
-			f = new FilmStrip(scene);
-			f.addEventListener(FilmStripEvent.RENDER_STOPPED, resize);
-			f.backgroundColor = 0xf0ecaf;
-			f.bufferMilliseconds = 100;
-			f.subframeBufferMilliseconds = 0;
-			f.durationInSeconds = 3;
-			f.frameRate = 30;
+			filmStrip = new FilmStrip(scene);
+			filmStrip.width = example.contentWidth;
+			filmStrip.height = example.contentHeight;
+			filmStrip.backgroundColor = 0xf0ecaf;
+			filmStrip.durationInSeconds = 3;
+			filmStrip.frameRate = 30;
 			
-			// --== Tests ==--
 			
-			// FILTERS (use OverlappingDice for better illustration)
-//			scene.addFilter(dice._cube1, dice.filter1);
-//			scene.addFilter(dice._cube1, dice.filter2);
-//			var soften:BlurFilter = new BlurFilter(1, 1);
-//			scene.addFilter(dice._cube1, soften);
-//			scene.addFilter(dice._cube2, soften);
+			// Records and plays back frames from memory
+			playbackBitmap = new PlaybackFromRAM(filmStrip);
+			
+			
+			// --== More ==--
+			
+			
+			// FILTERS -- you can easily add and animate bitmap filters on any scene object.
+			
+//			scene.addFilter(example._cube1, example.filter1);
+//			scene.addFilter(example._cube1, example.filter2);
+			
+			
+			
+			// (Advanced settings to explore.)
+			
+			filmStrip.bufferMilliseconds = 1; // KNOW THIS!! FilmStrip is extremely processor intensive and can easily lock up your computer! 
+										// This setting gives it some breathing room between frames, which at least allows the split-screen
+										// view in this example to update once per frame. Crucially, you should never use FilmStrip in a 
+										// browser app and assume that other people's computers will be able to handle it, they will crash.
+										// In theory by tweaking these buffer settings it could be made safe for client-side usage, but
+										// for the most part FilmStrip is for rendering video on your local system, not use in a live app!
+										
+			filmStrip.subframeBufferMilliseconds = 0; // Adds time between each blur subframe, for a slower but less processor-intensive run. 
+										// Try setting this value to 10 or 33 here to watch the blur process in full split-screen action!
+			
+//			filmStrip.blurMode = FilmStripBlurMode.NONE; // Simple frame sequence w/out blur.
+										// If you're not adding filters, use this + WHOLE_SCENE captureMode (below) for fastest capture.
 
-//			f.blurMode = FilmStripBlurMode.NONE;
-//			f.blurMode = FilmStripBlurMode.MATTE_SUBFRAMES;
+//			MotionBlurSettings.blendMode = BlendMode.LIGHTEN; // try this with the 2D Photos example.
+										// It makes more painterly-looking blurs, which sometimes looks better.
 			
 			
-			// WHOLE_SCENE (shows issue with overlapping, matting)
-//			f.blurMode = FilmStripBlurMode.MATTE_SUBFRAMES;
+			
+			// (Explore motion blur settings. this block does a longer blur. See the settings class for others.)
+			
+//			MotionBlurSettings.subframeDuration = 1;
+//			MotionBlurSettings.strength *= 2;
+//			MotionBlurSettings.maxFrames = 32;
+//			MotionBlurSettings.peakAlpha = 0.2;
+			
+			
+			
+			// offset: Blur forward (1) instead of the default trailing blur (-1).
+			// A future version could support panning between these values so blur goes both directions. 
+			
+//			MotionBlurSettings.offset = 1;
+			
+			
+			
+			// WHOLE_SCENE capture mode option
+			
+			// This is faster and often looks just fine, and you'll almost always want to use it
+			// if motion blur is turned off. When the mode is used with blur, you'll see a visual problem
+			// when objects overlap though -- they can appear smashed together. To see this issue in action,
+			// change to the OverlappingDice example scene above and uncomment all the additional settings
+			// in the block below which exaggerate the blur. the blur and use the arrow keys during playback
+			// to step to the frames where the dice move past each other. Sometimes it isn't very noticeable
+			// during video playback though, so give it a try if render time is a concern.
+			
+//			filmStrip.captureMode = FilmStripCaptureMode.WHOLE_SCENE;
 //			MotionBlurSettings.subframeDuration = 2;
 //			MotionBlurSettings.maxFrames = 32;
 //			MotionBlurSettings.strength = 3;
-//			MotionBlurSettings.peakAlpha = .8;
+//			MotionBlurSettings.peakAlpha = .5;
 //			MotionBlurSettings.useFixedFrameCount = true;
-//			f.captureMode = FilmStripCaptureMode.WHOLE_SCENE;
 			
-			playbackBitmap = new PlaybackFromRAM(f);
 			
+			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, exitSplitScreen);
+			enterSplitScreen();
+			
+			filmStrip.startRendering();
+			dispatchEvent(new Event("starting")); // used by AIR frameDumper project
+		}
+			
+		// Split screen view: top right is the real scene, bottom left is the FilmStrip's
+		// bitmapView, and top left is the final frame capture.
+		public function enterSplitScreen():void {	
 			outputDisplay = new Sprite();
-			outputDisplay.graphics.drawRect(0, 0, dice.viewport.viewportWidth, dice.viewport.viewportHeight);
+			outputDisplay.graphics.drawRect(0, 0, example.contentWidth, example.contentHeight);
 			playbackBitmap.x = playbackBitmap.y = 5;
 			//playbackBitmap.filters = [new DropShadowFilter(4,45,0,0.25,5,5)];
 			outputDisplay.addChild(playbackBitmap);
 			
-			f.bitmapScene.graphics.lineStyle(1, f.backgroundColor, 1);
-			f.bitmapScene.graphics.drawRect(0, 0, dice.viewport.viewportWidth, dice.viewport.viewportHeight);
-			f.bitmapScene.x = 5;
-			f.bitmapScene.y = dice.viewport.viewportHeight + 10;
-			outputDisplay.addChild(f.bitmapScene);
+			filmStrip.bitmapScene.graphics.lineStyle(1, filmStrip.backgroundColor, 1);
+			filmStrip.bitmapScene.graphics.drawRect(0, 0, example.contentWidth, example.contentHeight);
+			filmStrip.bitmapScene.x = 5;
+			filmStrip.bitmapScene.y = example.contentHeight + 10;
+			outputDisplay.addChild(filmStrip.bitmapScene);
 			
-			dice.scaleX = dice.scaleY = 0.5;
+			example.scaleX = example.scaleY = 0.5;
 			outputDisplay.scaleX = outputDisplay.scaleY = 0.5;
-			dice.x = outputDisplay.getBounds(this).right + 5;
+			example.x = outputDisplay.getBounds(this).right + 5;
 			addChild(outputDisplay);
-			
-			f.startRendering();
-			dispatchEvent(new Event("starting")); // for frameDumper project
 		}
 		
-		public function resize(event:FilmStripEvent):void {
-			removeChild(dice);
-			outputDisplay.removeChild(f.bitmapScene);
+		public function exitSplitScreen(event:FilmStripEvent):void {
+			removeChild(example);
+			outputDisplay.removeChild(filmStrip.bitmapScene);
 			outputDisplay.scaleX = outputDisplay.scaleY = 1;
 		}
-		
-		
-		// -== notes ==-
-		
-		// Need a 2D animated scene -- ready to test!
-		// Need to do a test w/ photo -- prove premult issue!
-		//  - Decide on matted frames or not based on photo test
-		// FrameDump: maybe revamp if time
-		// Tree structured objects should work -- test.
-		//  - Need to add parent transforms to delta in this build
-		
 	}
 }

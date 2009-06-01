@@ -13,11 +13,13 @@ package com.animoto.filmstrip
 	 * To enable it: 
 	 * 
 	 * 1) Replace obj.addEventListener(Event.ENTER_FRAME, handler) 
-	 * with PulseControl.addEnterFrameListener(handler), and do 
-	 * similar for remove.
+	 * with PulseControl.addEngineListener(handler) in tween engines, 
+	 * and PulseControl.addEnterFrameListener(handler) in your project
+	 * code. Similarly replace remove calls.
 	 * 
-	 * 2) Replace all getTimer() (or new Date().getTime()) calls 
-	 * with PulseControl.getCurrentTime().
+	 * 2) Replace all getTimer() or new Date().getTime() calls 
+	 * with PulseControl.getCurrentTime() in both tween engines and
+	 * project code.
 	 * 
 	 * @author moses gunesch
 	 */

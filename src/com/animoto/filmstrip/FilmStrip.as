@@ -1,5 +1,6 @@
 package com.animoto.filmstrip
 {
+	import com.animoto.filmstrip.managers.FilmStripBitmapScene;
 	import com.animoto.filmstrip.scenes.FilmStripScene;
 	import com.animoto.util.StopWatch;
 	
@@ -35,7 +36,7 @@ package com.animoto.filmstrip
 		public var frameRate: int = 15;
 		public var durationInSeconds: Number = NaN;
 		public var captureMode:String = FilmStripCaptureMode.EACH_OBJECT;
-		public var blurMode:String = FilmStripBlurMode.SPLIT_SUBFRAMES;
+		public var blurMode:String = FilmStripBlurMode.MATTE_SUBFRAMES;
 		public var transparent: Boolean = false;
 		public var backgroundColor: Number = 0xFFFFFF;
 		public var bufferMilliseconds: int = 0;
@@ -73,7 +74,7 @@ package com.animoto.filmstrip
 			return scenes[index] as FilmStripScene;
 		}
 		
-		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, blurMode:String=null, captureMode:String=null, transparent:*=null, backgroundColor:Number=NaN, bufferMilliseconds:Number=NaN):void {
+		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, transparent:*=null, backgroundColor:Number=NaN):void {
 			if (_busy) {
 				stopRendering();
 			}
@@ -82,17 +83,14 @@ package com.animoto.filmstrip
 			if (!isNaN(height))					{ this.height = int(height); }
 			if (!isNaN(frameRate))				{ this.frameRate = int(frameRate); }
 			if (!isNaN(durationInSeconds))		{ this.durationInSeconds = durationInSeconds; }
-			if (blurMode!=null)					{ this.blurMode = blurMode; }
-			if (captureMode!=null)				{ this.captureMode = captureMode; }
 			if (transparent!=null)				{ this.transparent = Boolean(transparent); }
 			if (!isNaN(backgroundColor))		{ this.backgroundColor = backgroundColor; }
-			if (!isNaN(bufferMilliseconds))		{ this.bufferMilliseconds = int(bufferMilliseconds); }
 			
 			if (scenes==null || (scenes!=null && scenes.length==0)) {
 				error("Scene missing.");
 				return;
 			}
-				
+			
 			// If no size was defined, default to size of first scene.
 			if (isNaN(this.width))			{ this.width = getSceneAt(0).actualContentWidth; }
 			if (isNaN(this.height))			{ this.height = getSceneAt(0).actualContentHeight; }

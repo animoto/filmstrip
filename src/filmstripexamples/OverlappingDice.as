@@ -18,7 +18,8 @@ package filmstripexamples
 			camera.zoom = 2;
 			camera.rotationX = 25;
 			camera.rotationY = -45;
-			_cube2.x = 1000;
+			_cube2.x = 1100;
+			_cube1.rotationZ += 35;
 		}
 		override public function runAnimation():void {
 			

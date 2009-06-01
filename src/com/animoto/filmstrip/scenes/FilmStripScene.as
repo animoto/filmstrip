@@ -1,6 +1,6 @@
 package com.animoto.filmstrip.scenes
 {
-	import com.animoto.filmstrip.FilmStripSceneController;
+	import com.animoto.filmstrip.managers.FilmStripSceneController;
 	import com.mosesSupposes.util.SelectiveDrawBase;
 	
 	import flash.display.BitmapData;

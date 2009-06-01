@@ -5,25 +5,20 @@ package com.animoto.filmstrip
 		public static const NONE: String = "none";
 		
 		/**
-		 * Draw subframes into a single bitmap.
-		 * 
-		 * This option is slightly faster and less memory-intensive, but due
-		 * to Flash Player's inherent limitation of premultiplying alpha during
-		 * bitmap draw, this option will sometimes result in a darkening and 
-		 * degradation of the blur area. That doesn't always happen though,
-		 * so try it both ways.
-		 * 
+		 * Draws all subframes into a single bitmap (Default).
 		 */
 		public static const MATTE_SUBFRAMES: String = "matteSubframes";
 		
 		/**
-		 * Separate bitmaps are generated for each subframe.
+		 * Separate bitmaps are generated for each subframe (Advanced).
 		 * 
-		 * I came up with this as a workaround for the premultiplied-alpha issue:
-		 * allow the player to handle blending all the way through frame capture.
-		 * This is memory-intensive but allows the player to retain alpha information
-		 * for each subframe. Seems to work pretty well.
-		 * 
+		 * Flash Player has an inherent limitation of premultiplying alpha during
+		 * bitmap draw, which in rare cases can result in a darkening and 
+		 * degradation of the blur area. This advanced mode is a workaround
+		 * that lets the player handle blending all the way through frame capture
+		 * by retaining each subframe as a separate bitmap. This mode is more 
+		 * memory-intensive and should rarely be needed, but give it a try if you 
+		 * see artifacting in your blur edges or are shooting for highest quality.
 		 */
 		public static const SPLIT_SUBFRAMES: String = "splitSubframes";
 	}

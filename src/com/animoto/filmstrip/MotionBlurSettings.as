@@ -25,7 +25,7 @@ package com.animoto.filmstrip
 		public static var strength:Number = 1;
 		
 		/**
-		 * Maximum number of frames any blur can generate (1 or more).
+		 * Maximum number of captures per frame (1 or higher).
 		 */
 		public static var maxFrames:uint = 16;
 		
@@ -83,6 +83,12 @@ package com.animoto.filmstrip
 		public static var threshold:int = 1;
 		
 		/**
+		 * (Advanced) Proportionally changes the influence of rotation values on blur amount.
+		 * Try setting this value if the blur seems too weak or strong during rotations.
+		 */
+		public static var rotationMultiplier:Number = 1;
+		
+		/**
 		 * Estimates subframe count based on frameRate, delta, and settings.
 		 * 
 		 * @param frameRate			FilmStrip.frameRate value
@@ -94,8 +100,8 @@ package com.animoto.filmstrip
 			
 			// TODO: factor camera3D movement into compound delta..?
 			
-			// Allows strength to be a more intuitive value where 1 is normal.
-			var strengthMultiplier: Number = 0.02;
+			// Allows strength to be a more intuitive value where 1 is relatively normal.
+			var strengthMultiplier: Number = 0.25;
 			
 			// adjust for current render framerate, using a constant of 30fps (approximates video standard)
 			var frameRateMult: Number = frameRate / 30;

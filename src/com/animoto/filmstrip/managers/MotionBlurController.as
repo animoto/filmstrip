@@ -1,5 +1,8 @@
-package com.animoto.filmstrip
+package com.animoto.filmstrip.managers
 {
+	import com.animoto.filmstrip.FilmStripBlurMode;
+	import com.animoto.filmstrip.MotionBlurSettings;
+	import com.animoto.filmstrip.PulseControl;
 	import com.mosesSupposes.util.SelectiveDrawBase;
 	
 	import flash.display.Bitmap;
@@ -46,10 +49,11 @@ package com.animoto.filmstrip
 			}
 			
 			// Correct static settings.
+			strength = Math.max(0, strength);
 			threshold = Math.max(1, threshold);
+			maxFrames = Math.max(1, maxFrames);
 			subframeDuration = Math.max(1, subframeDuration);
 			peakAlpha = Math.min(1, Math.max(0, peakAlpha));
-			maxFrames = Math.max(1, maxFrames);
 			offset = (offset > 0 ? 1 : -1); // For now.
 		}
 		

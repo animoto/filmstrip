@@ -1,5 +1,7 @@
-package com.animoto.filmstrip
+package com.animoto.filmstrip.managers
 {
+	import com.animoto.filmstrip.FilmStrip;
+	
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;

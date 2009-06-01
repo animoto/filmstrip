@@ -1,4 +1,4 @@
-package com.animoto.filmstrip
+package com.animoto.filmstrip.managers
 {
 	import flash.display.BitmapData;
 	import flash.filters.BitmapFilter;

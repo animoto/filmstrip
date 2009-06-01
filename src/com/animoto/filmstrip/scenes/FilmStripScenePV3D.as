@@ -62,7 +62,7 @@ package com.animoto.filmstrip.scenes
 					}
 				}
 			}
-			// Sort by screen depth -- probably needed eventually
+			// Sort by screen depth -- needs work.
 			//a.sortOn("screenZ", Array.DESCENDING | Array.NUMERIC);
 			return a;
 		}

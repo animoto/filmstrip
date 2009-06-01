@@ -3,7 +3,7 @@ package com.animoto.filmstrip
 	public class FilmStripCaptureMode
 	{
 		/**
-		 * Capture each child of the scene separately.
+		 * Capture each child of the scene separately (Default).
 		 * 
 		 * By separating out each object we can vary the amount of
 		 * motion-blur based on its real motion. This is a lot slower

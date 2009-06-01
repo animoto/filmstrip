@@ -1,5 +1,11 @@
-package com.animoto.filmstrip
+package com.animoto.filmstrip.managers
 {
+	import com.animoto.filmstrip.FilmStrip;
+	import com.animoto.filmstrip.FilmStripBlurMode;
+	import com.animoto.filmstrip.FilmStripCaptureMode;
+	import com.animoto.filmstrip.FilmStripEvent;
+	import com.animoto.filmstrip.MotionBlurSettings;
+	import com.animoto.filmstrip.PulseControl;
 	import com.animoto.filmstrip.scenes.FilmStripScene;
 	
 	import flash.utils.Dictionary;
@@ -57,18 +63,24 @@ package com.animoto.filmstrip
 			
 			// MotionBlurControllers are used for capture even when there are no subframes.
 			if (filmStrip.captureMode==FilmStripCaptureMode.WHOLE_SCENE) {
-				if (!MotionBlurSettings.useFixedFrameCount && MotionBlurSettings.maxFrames > 1) {
+				if (filmStrip.blurMode==FilmStripBlurMode.NONE) {
+					singleCapture(0);
+				}
+				else if (MotionBlurSettings.useFixedFrameCount) {
+					singleCapture(MotionBlurSettings.fixedFrameCount);
+				}
+				else {
 					FilmStrip.error("You must set MotionBlurSettings.usefixedFrameCount to true for WHOLE_SCENE captureMode.");
 				}
-				singleCapture();
 			}
 			else {
 				setupMultiCapture();
 			}
 		}
 		
-		protected function singleCapture():void {
+		protected function singleCapture(subframes:int):void {
 			motionBlurs = [ sceneBlur ];
+			sceneBlur.subframes = subframes;
 			scene.redrawScene();
 			sceneBlur.render();
 		}
@@ -94,8 +106,13 @@ package com.animoto.filmstrip
 				var totalSubframes:int = precalcSubframes();
 				if (totalSubframes == 0) {
 					trace("Reverted to single capture - no blur in this frame.");
-					singleCapture();
+					singleCapture(0);
 					return;
+				}
+			}
+			else {
+				for each (var blur:MotionBlurController in motionBlurs) {
+					blur.subframes = MotionBlurSettings.fixedFrameCount;
 				}
 			}
 			motionBlurIndex = -1;
@@ -164,7 +181,11 @@ package com.animoto.filmstrip
 				complete();
 			}
 			else {
-				(motionBlurs[motionBlurIndex] as MotionBlurController).render();
+				var blur:MotionBlurController = (motionBlurs[motionBlurIndex] as MotionBlurController);
+				if (blur.subframes>0) {
+					trace("render "+ blur.subframes + " subframes for "+ blur.target.name+"...");
+				}
+				blur.render();
 			}
 		}
 		

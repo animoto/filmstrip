@@ -1,13 +1,9 @@
-package com.animoto.filmstrip
+package com.animoto.filmstrip.managers
 {
+	import com.animoto.filmstrip.MotionBlurSettings;
+	
 	public class DeltaManager
 	{
-		/**
-		 * Increases the influence of rotation values for determining blur amount,
-		 * since rotation values are often weaker than motion values.
-		 */
-		public static var rotationMultiplier:Number = 20;
-		
 		public static var props: String = "x|y|z|rotationX|rotationY|rotationZ|zoom|focus";
 		
 		public var target: Object;
@@ -43,7 +39,7 @@ package com.animoto.filmstrip
 				var delta:Number = Math.abs( target[prop] - starts[prop] );
 				deltas[prop] = delta;
 				if (prop.indexOf("rotation")==0) {
-					delta *= rotationMultiplier;
+					delta *= MotionBlurSettings.rotationMultiplier;
 				}
 				//trace(target,prop,delta);
 				cd += delta;
