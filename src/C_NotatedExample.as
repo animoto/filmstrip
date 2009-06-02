@@ -16,14 +16,14 @@ package {
 
 	[SWF(backgroundColor="#FFFFFF", frameRate="30")]
 	
-	public class FilmStripExample extends Sprite
+	/**
+	 * Example with tutorial notes.
+	 * 
+	 * @author moses gunesch
+	 */
+	public class C_NotatedExample extends SplitScreenView
 	{
-		public var example:ExampleScene;
-		public var filmStrip:FilmStrip;
-		public var playbackBitmap:PlaybackFromRAM;
-		public var outputDisplay:Sprite;
-		
-		public function FilmStripExample()
+		public function C_NotatedExample()
 		{
 			super();
 			addEventListener(Event.ADDED_TO_STAGE, setup);
@@ -85,7 +85,7 @@ package {
 			filmStrip.height = example.contentHeight;
 			filmStrip.backgroundColor = 0xf0ecaf;
 			filmStrip.durationInSeconds = 3;
-			filmStrip.frameRate = 30;
+			filmStrip.frameRate = 30; // 15 or 20 are also good choices.
 			
 			
 			// Records and plays back frames from memory
@@ -93,13 +93,6 @@ package {
 			
 			
 			// --== More ==--
-			
-			
-			// FILTERS -- you can easily add and animate bitmap filters on any scene object.
-			
-//			scene.addFilter(example._cube1, example.filter1);
-//			scene.addFilter(example._cube1, example.filter2);
-			
 			
 			
 			// (Advanced settings to explore.)
@@ -122,7 +115,7 @@ package {
 			
 			
 			
-			// (Explore motion blur settings. this block does a longer blur. See the settings class for others.)
+			// Some more motion blur settings -- a longer blur. Look in the class to see all settings.
 			
 //			MotionBlurSettings.subframeDuration = 1;
 //			MotionBlurSettings.strength *= 2;
@@ -156,38 +149,11 @@ package {
 //			MotionBlurSettings.useFixedFrameCount = true;
 			
 			
-			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, exitSplitScreen);
-			enterSplitScreen();
+			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, super.exitSplitScreen);
+			super.enterSplitScreen();
 			
 			filmStrip.startRendering();
 			dispatchEvent(new Event("starting")); // used by AIR frameDumper project
-		}
-			
-		// Split screen view: top right is the real scene, bottom left is the FilmStrip's
-		// bitmapView, and top left is the final frame capture.
-		public function enterSplitScreen():void {	
-			outputDisplay = new Sprite();
-			outputDisplay.graphics.drawRect(0, 0, example.contentWidth, example.contentHeight);
-			playbackBitmap.x = playbackBitmap.y = 5;
-			//playbackBitmap.filters = [new DropShadowFilter(4,45,0,0.25,5,5)];
-			outputDisplay.addChild(playbackBitmap);
-			
-			filmStrip.bitmapScene.graphics.lineStyle(1, filmStrip.backgroundColor, 1);
-			filmStrip.bitmapScene.graphics.drawRect(0, 0, example.contentWidth, example.contentHeight);
-			filmStrip.bitmapScene.x = 5;
-			filmStrip.bitmapScene.y = example.contentHeight + 10;
-			outputDisplay.addChild(filmStrip.bitmapScene);
-			
-			example.scaleX = example.scaleY = 0.5;
-			outputDisplay.scaleX = outputDisplay.scaleY = 0.5;
-			example.x = outputDisplay.getBounds(this).right + 5;
-			addChild(outputDisplay);
-		}
-		
-		public function exitSplitScreen(event:FilmStripEvent):void {
-			removeChild(example);
-			outputDisplay.removeChild(filmStrip.bitmapScene);
-			outputDisplay.scaleX = outputDisplay.scaleY = 1;
 		}
 	}
 }

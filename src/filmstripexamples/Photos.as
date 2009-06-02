@@ -36,7 +36,6 @@ package filmstripexamples
 		}
 		
 		public function draw():void {
-			scrollRect = new Rectangle(0, 0, contentWidth, contentHeight);
 			
 			image1.x = -1000;
 			image1.y = 50;
@@ -55,7 +54,6 @@ package filmstripexamples
 			image3.scaleX = image3.scaleY = 1.2;
 			image3.rotation = Math.random()*360;
 			addChild(image3);
-			
 		}
 		
 		public function runAnimation():void {
