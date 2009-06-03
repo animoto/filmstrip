@@ -73,7 +73,6 @@ package {
 			// 2. Wrap the scene to render in a new FilmStripScene. Use this one with Dice or OverlappingDice above...
 			var dice:Dice = example as Dice;
 			var scene:FilmStripScenePV3D = new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer);
-			//MotionBlurSettings.strength = 0.1; // The Dice 3D scenes require a lot less blur strength.
 			
 			// (2...)		-== Or, Sprite scene (uncomment Photos example above) ==-
 //			var scene:FilmStripSceneSprite = new FilmStripSceneSprite(example);
@@ -102,16 +101,19 @@ package {
 										// view in this example to update once per frame. Crucially, you should never use FilmStrip in a 
 										// browser app and assume that other people's computers will be able to handle it, they will crash.
 										// In theory by tweaking these buffer settings it could be made safe for client-side usage, but
-										// for the most part FilmStrip is for rendering video on your local system, not use in a live app!
+										// for the most part FilmStrip is for rendering video on your local system, not for live apps!
 										
 			filmStrip.subframeBufferMilliseconds = 0; // Adds time between each blur subframe, for a slower but less processor-intensive run. 
 										// Try setting this value to 10 or 33 here to watch the blur process in full split-screen action!
 			
 //			filmStrip.blurMode = FilmStripBlurMode.NONE; // Simple frame sequence w/out blur.
+										// Be sure to import com.animoto.filmstrip.FilmStripBlurMode.
 										// If you're not adding filters, use this + WHOLE_SCENE captureMode (below) for fastest capture.
 
 //			MotionBlurSettings.blendMode = BlendMode.LIGHTEN; // try this with the 2D Photos example.
-										// It makes more painterly-looking blurs, which sometimes looks better.
+										// Be sure to import com.animoto.filmstrip.MotionBlurSettings.
+										// This setting makes more painterly-looking blurs, which sometimes look cleaner.
+										// Standard blurs can sometimes darken up the object which this mode can help with.
 			
 			
 			
