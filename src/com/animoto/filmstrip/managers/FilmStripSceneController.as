@@ -28,6 +28,7 @@ package com.animoto.filmstrip.managers
 		protected var motionBlurs: Array;
 		protected var motionBlurIndex: int;
 		protected var sceneBlur: MotionBlurController;
+		protected var hasFilters: Boolean = false;
 		
 		public function FilmStripSceneController(scene: FilmStripScene)
 		{
@@ -39,6 +40,9 @@ package com.animoto.filmstrip.managers
 			this.renderCallback = renderCallback;
 			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, filmstripRenderStopped, false, 0, true);
 			this.sceneBlur = newMotionBlur(scene, true);
+			if (filmStrip.captureMode!=FilmStripCaptureMode.WHOLE_SCENE) {
+				
+			}
 		}
 		
 		public function stopRendering():void {
@@ -48,6 +52,7 @@ package com.animoto.filmstrip.managers
 			}
 			sceneBlur.destroy();
 			motionBlurRetainer = null;
+			hasFilters = false;
 		}
 		
 		public function destroy():void {
@@ -86,8 +91,8 @@ package com.animoto.filmstrip.managers
 		}
 		
 		protected function newMotionBlur(target:Object, wholeScene:Boolean):MotionBlurController {
-			if (filmStrip.blurMode==FilmStripBlurMode.MATTE_SUBFRAMES) {
-				return new MotionBlurCtrlMatte(this, target, wholeScene);
+			if (filmStrip.blurMode==FilmStripBlurMode.SPLIT_SUBFRAMES) {
+				return new SplitBlurController(this, target, wholeScene);
 			}
 			return new MotionBlurController(this, target, wholeScene);
 		}
@@ -104,7 +109,7 @@ package com.animoto.filmstrip.managers
 			}
 			if ( MotionBlurSettings.useFixedFrameCount == false ) {
 				var totalSubframes:int = precalcSubframes();
-				if (totalSubframes == 0) {
+				if (totalSubframes == 0 && hasFilters == false) {
 					trace("Reverted to single capture - no blur in this frame.");
 					singleCapture(0);
 					return;
@@ -123,6 +128,7 @@ package com.animoto.filmstrip.managers
 			motionBlurs = new Array();
 			var blur: MotionBlurController;
 			var children:Array = scene.getVisibleChildren();
+			hasFilters = false;
 			
 			for each (var child:Object in children) {
 				if (child.visible && motionBlurRetainer[child]==null) {
@@ -132,6 +138,9 @@ package com.animoto.filmstrip.managers
 				}
 				else {
 					motionBlurs.push(motionBlurRetainer[child]);
+				}
+				if (!hasFilters && scene.getFilters(child)!=null) {
+					hasFilters = true;
 				}
 			}
 			

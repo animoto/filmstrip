@@ -1,10 +1,10 @@
 package {
 	import com.animoto.filmstrip.FilmStrip;
 	import com.animoto.filmstrip.FilmStripEvent;
+	import com.animoto.filmstrip.MotionBlurSettings;
 	import com.animoto.filmstrip.output.PlaybackFromRAM;
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
-	import filmstripexamples.Dice;
 	import filmstripexamples.OverlappingDice;
 	
 	import flash.display.StageAlign;
@@ -40,15 +40,15 @@ package {
 			
 			example = new OverlappingDice();
 			addChild(example);
-			if (example.requiresLoad) {
-				example.addEventListener(Event.COMPLETE, startAnimation);
+			if (example.requiresWait) {
+				example.addEventListener(Event.COMPLETE, setupStart);
 			}
 			else {
-				startAnimation();
+				setupStart();
 			}
 		}
 		
-		public function startAnimation(event:Event=null):void {
+		public function setupStart(event:Event=null):void {
 			stage.addEventListener(MouseEvent.CLICK, start);
 			start(); // Comment out to start on click instead.
 		}
@@ -63,15 +63,16 @@ package {
 			
 			var dice:OverlappingDice = example as OverlappingDice;
 			var scene:FilmStripScenePV3D = new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer);
-			
+			dice.camera.zoom = 1.25;
 			
 			// FILTERS/EFFECTS
 			
 			// sorry these are so lame, you can do better. just trying to get this thing out the door!
 			
 			scene.addFilter(dice.cube1, dice.filter1);
-			scene.addFilter(dice.cube1, dice.filter2);
-			
+			scene.addFilter(dice.cube2, dice.filter2);
+			scene.addFilter(dice.cube1, dice.filter3);
+			scene.addFilter(dice.cube2, dice.filter4);
 			
 			filmStrip = new FilmStrip(scene);
 			filmStrip.width = example.contentWidth;

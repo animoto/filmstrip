@@ -27,6 +27,7 @@ package com.animoto.filmstrip.scenes
 	{
 		protected var _controller: FilmStripSceneController;
 		protected var _filters: Dictionary = new Dictionary();
+		protected var _subframeFilters: Dictionary = new Dictionary();
 		
 		/**
 		 * Render controller for this scene.
@@ -58,11 +59,18 @@ package com.animoto.filmstrip.scenes
 		 * Filters added are rendered to their target object.
 		 * (Hint: you can animate the filter's properties directly!)
 		 */
-		public function addFilter(targetInScene:Object, effect:BitmapFilter):void {
+		public function addFilter(targetInScene:Object, effect:BitmapFilter, applyToSubframes:Boolean=false):void {
 			if (_filters[targetInScene]==null) {
 				_filters[targetInScene] = new Array();
 			}
 			(_filters[targetInScene] as Array).push(effect);
+			
+			if (applyToSubframes) {
+				if (_subframeFilters[targetInScene]==null) {
+					_subframeFilters[targetInScene] = new Array();
+				}
+				(_subframeFilters[targetInScene] as Array).push(effect);
+			}
 		}
 		
 		/**
@@ -70,12 +78,16 @@ package com.animoto.filmstrip.scenes
 		 */
 		public function removeFilters(targetInScene:Object):void {
 			delete _filters[targetInScene];
+			delete _subframeFilters[targetInScene];
 		}
 		
 		/**
 		 * Get filters added using addFilter().
 		 */
-		public function getFilters(targetInScene:Object):Array {
+		public function getFilters(targetInScene:Object, forSubframe:Boolean=false):Array {
+			if (forSubframe) {
+				return _subframeFilters[targetInScene];
+			}
 			return _filters[targetInScene];
 		}
 		
@@ -113,6 +125,7 @@ package com.animoto.filmstrip.scenes
 				_controller = null;
 			}
 			_filters = null;
+			_subframeFilters = null;
 		}
 	}
 }

@@ -6,7 +6,7 @@ package filmstripexamples
 	{
 		public var contentWidth: Number = 864;
 		public var contentHeight: Number = 480;
-		public var requiresLoad: Boolean = false;
+		public var requiresWait: Boolean = false; // if an example requires setup time, set true and dispatch COMPLETE when ready.
 		
 		public function ExampleScene()
 		{

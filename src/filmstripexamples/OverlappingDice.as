@@ -4,12 +4,15 @@ package filmstripexamples
 	
 	import flash.events.Event;
 	import flash.filters.BitmapFilter;
+	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
 	
 	public class OverlappingDice extends Dice
 	{
 		public var filter1:BitmapFilter;
 		public var filter2:BitmapFilter;
+		public var filter3:BitmapFilter;
+		public var filter4:BitmapFilter;
 		
 		public function OverlappingDice()
 		{
@@ -32,15 +35,19 @@ package filmstripexamples
 
 			filter1 = new GlowFilter(0xFFFFFF, 0.5);
 			filter2 = new GlowFilter(0xFFFFFF, 0.5);
+			filter3 = new DropShadowFilter(cubeSize*2, 90, 0, 0.2);
+			filter4 = new DropShadowFilter(cubeSize*2, 90, 0, 0.2);
 			
-			Tweener.addTween(filter2, {blurX:20, blurY:10, time:1, transition:"easeincirc"});
+			Tweener.addTween(filter1, {blurX:20, blurY:10, time:1, transition:"easeincirc"});
 			Tweener.addTween(filter2, {blurX:20, blurY:10, time:1, transition:"easeincirc"});
 			
 			Tweener.addTween(cube1, {x:100, z:100, rotationX:360, time:1.7, transition:"easeoutcirc"});
 			Tweener.addTween(cube1, {rotationY:180, rotationZ:-180, y:cubeSize/2, time:1.7, transition:"easeoutbounce"});
+			Tweener.addTween(filter3, {distance:0, time:1.7, transition:"easeoutbounce"});
 			
 			Tweener.addTween(cube2, {z:-250, rotationX:180, time:2, transition:"easeoutquint"});
 			Tweener.addTween(cube2, {rotationY:90, rotationZ:-90, y:cubeSize/2, time:2, transition:"easeoutbounce"});
+			Tweener.addTween(filter4, {distance:0, time:2, transition:"easeoutbounce"});
 			Tweener.addTween(cube2, {x:-650, time:.9, transition:"easeoutquad"});
 			Tweener.addTween(cube2, {x:-30, time:.5, /* rotationY:180,  */delay:.6, transition:"easeoutcirc"});
 			

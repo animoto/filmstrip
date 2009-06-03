@@ -1,10 +1,11 @@
 package filmstripexamples
 {
 	import caurina.transitions.Tweener;
+	import caurina.transitions.properties.FilterShortcuts;
 	
 	import flash.display.Bitmap;
 	import flash.events.Event;
-	import flash.geom.Rectangle;
+	import flash.filters.DropShadowFilter;
 	
 	public class Photos extends ExampleScene
 	{
@@ -54,15 +55,20 @@ package filmstripexamples
 			image3.scaleX = image3.scaleY = 1.2;
 			image3.rotation = Math.random()*360;
 			addChild(image3);
+			
+			image1.filters = [new DropShadowFilter(150, 90, 0, 0.25, 8, 8)];
+			image2.filters = [new DropShadowFilter(150, 90, 0, 0.25, 8, 8)];
+			image3.filters = [new DropShadowFilter(150, 90, 0, 0.25, 8, 8)];
 		}
 		
 		public function runAnimation():void {
+			FilterShortcuts.init();
 			Tweener.addTween(image1, { x:400, y:200, rotation:-5, time:1.75, transition:"easeOutQuint" });
-			Tweener.addTween(image1, { scaleX:1, scaleY:1, time:.75, transition:"easeOutBounce" });
+			Tweener.addTween(image1, { _DropShadow_distance:4, scaleX:1, scaleY:1, time:.75, transition:"easeOutBounce" });
 			Tweener.addTween(image2, { x:100, y:20, rotation:15, time:1.75, delay:.5, transition:"easeOutQuint" });
-			Tweener.addTween(image2, { scaleX:1, scaleY:1, time:.75, delay:.5, transition:"easeOutBounce" });
+			Tweener.addTween(image2, { _DropShadow_distance:4, scaleX:1, scaleY:1, time:.75, delay:.5, transition:"easeOutBounce" });
 			Tweener.addTween(image3, { x:260, y:100, rotation:5, time:1.75, delay:1, transition:"easeOutQuint" });
-			Tweener.addTween(image3, { scaleX:1, scaleY:1, time:.75, delay:1, transition:"easeOutBounce" });
+			Tweener.addTween(image3, { _DropShadow_distance:4, scaleX:1, scaleY:1, time:.75, delay:1, transition:"easeOutBounce" });
 		}
 	}
 }

@@ -40,15 +40,15 @@ package {
 //			example = new Photos();
 			
 			addChild(example);
-			if (example.requiresLoad) {
-				example.addEventListener(Event.COMPLETE, startAnimation);
+			if (example.requiresWait) {
+				example.addEventListener(Event.COMPLETE, setupStart);
 			}
 			else {
-				startAnimation();
+				setupStart();
 			}
 		}
 		
-		public function startAnimation(event:Event=null):void {
+		public function setupStart(event:Event=null):void {
 			stage.addEventListener(MouseEvent.CLICK, start); // click-to-start if line below is commented. 
 															 // also acts as click-to-stop during render.
 			

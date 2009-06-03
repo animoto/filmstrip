@@ -1,11 +1,11 @@
 package {
 	import com.animoto.filmstrip.FilmStrip;
 	import com.animoto.filmstrip.FilmStripEvent;
+	import com.animoto.filmstrip.MotionBlurSettings;
 	import com.animoto.filmstrip.output.PlaybackFromRAM;
-	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
+	import com.animoto.filmstrip.scenes.FilmStripSceneSprite;
 	
-	import filmstripexamples.Dice;
-	import filmstripexamples.ExampleScene;
+	import filmstripexamples.Photos;
 	
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
@@ -18,7 +18,7 @@ package {
 	 * This example wraps a Sprite scene -- which wouldn't necessarily 
 	 * need to be 2D if you're using Flash 10.
 	 * 
-	 * For more of a tutorial, see the file NotatedExample.
+	 * For more of a tutorial, see the 'NotatedExample' file.
 	 * 
 	 * @author moses gunesch
 	 * 
@@ -35,17 +35,17 @@ package {
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
 			
-			example = new Dice();
+			example = new Photos(); // an animation of a few photos in a sprite.
 			addChild(example);
-			if (example.requiresLoad) {
-				example.addEventListener(Event.COMPLETE, startAnimation);
+			if (example.requiresWait) {
+				example.addEventListener(Event.COMPLETE, setupStart);
 			}
 			else {
-				startAnimation();
+				setupStart();
 			}
 		}
 		
-		public function startAnimation(event:Event=null):void {
+		public function setupStart(event:Event=null):void {
 			stage.addEventListener(MouseEvent.CLICK, start);
 			start(); // Comment out to start on click instead.
 		}
@@ -58,8 +58,7 @@ package {
 				return;
 			}
 			
-			var dice:Dice = example as Dice;
-			var scene:FilmStripScenePV3D = new FilmStripScenePV3D(dice.scene, dice.camera, dice.viewport, dice.renderer);
+			var scene:FilmStripSceneSprite = new FilmStripSceneSprite(example); // This scene wrapper class works with a plain Sprite.
 			
 			filmStrip = new FilmStrip(scene);
 			filmStrip.width = example.contentWidth;
@@ -68,6 +67,8 @@ package {
 			filmStrip.durationInSeconds = 3;
 			filmStrip.frameRate = 20;
 			filmStrip.bufferMilliseconds = 1; // Important: read the notes on this property in NotatedExample before you change this!
+			
+			MotionBlurSettings.offset = 1; // this animation looks a little better blurring forward instead of trailing.
 			
 			playbackBitmap = new PlaybackFromRAM(filmStrip);
 			

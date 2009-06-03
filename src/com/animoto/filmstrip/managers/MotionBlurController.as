@@ -9,7 +9,10 @@ package com.animoto.filmstrip.managers
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.TimerEvent;
+	import flash.filters.BitmapFilter;
 	import flash.filters.BlurFilter;
+	import flash.geom.ColorTransform;
+	import flash.geom.Point;
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
@@ -129,7 +132,7 @@ package com.animoto.filmstrip.managers
 			}
 			drawUtil.bitmapData.draw(drawUtil.drawSource);
 			var bitmap:Bitmap = new Bitmap(drawUtil.bitmapData);
-			var filters:Array = controller.scene.getFilters(target);
+			var filters:Array = controller.scene.getFilters(target, false);
 			if (filters!=null) {
 				bitmap.filters = filters;
 			}
@@ -138,27 +141,26 @@ package com.animoto.filmstrip.managers
 		
 		protected function captureSubframe():void {
 			controller.scene.redrawScene();
-			refreshDrawUtil();
-			drawUtil.bitmapData.draw(drawUtil.drawSource);
 			
-			var bitmap:Bitmap = new Bitmap(drawUtil.bitmapData);
-			bitmap.blendMode = blendMode;
-			bitmap.alpha = currentAlpha();
+			var ct:ColorTransform = new ColorTransform(1, 1, 1, currentAlpha());
+			var filters:Array = controller.scene.getFilters(target, true);
 			
+			var bd:BitmapData = newBitmapData();
+			bd.draw(drawUtil.drawSource);
+			if (filters==null) {
+				filters = [];
+			}
+			else {
+				filters = filters.slice();
+			}
 			if (applyBoxBlur) {
-				var boxblur:BlurFilter = currentBoxBlur();
-				bitmap.filters = [ boxblur ];
-				if (index==1) { // retroactively box-blur primary frame on first subframe
-					(container.getChildAt(0) as Bitmap).filters = [ boxblur ];
-				}
+				filters.push(currentBoxBlur());
 			}
-			var filters:Array = controller.scene.getFilters(target);
-			if (filters!=null) {
-				bitmap.filters = filters.concat(bitmap.filters);
+			var p:Point = new Point(0,0);
+			for each (var filter:BitmapFilter in filters) {
+				bd.applyFilter(bd, drawUtil.bitmapData.rect, p, filter);
 			}
-			
-			container.addChild(bitmap);
-			drawUtil.bitmapData = null;
+			drawUtil.bitmapData.draw(bd, null, ct, blendMode);
 		}
 		
 		protected function complete():void {

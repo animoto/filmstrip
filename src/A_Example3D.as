@@ -18,7 +18,7 @@ package {
 	 * FilmStrip is written to be extensible to various types of scenes.
 	 * This one wraps a simple Papervision3D scene.
 	 * 
-	 * For more of a tutorial, see the file NotatedExample.
+	 * For more of a tutorial, see the 'NotatedExample' file.
 	 * 
 	 * @author moses gunesch
 	 * 
@@ -37,15 +37,15 @@ package {
 			
 			example = new Dice();
 			addChild(example);
-			if (example.requiresLoad) {
-				example.addEventListener(Event.COMPLETE, startAnimation);
+			if (example.requiresWait) {
+				example.addEventListener(Event.COMPLETE, setupStart);
 			}
 			else {
-				startAnimation();
+				setupStart();
 			}
 		}
 		
-		public function startAnimation(event:Event=null):void {
+		public function setupStart(event:Event=null):void {
 			stage.addEventListener(MouseEvent.CLICK, start);
 			start(); // Comment out to start on click instead.
 		}
