@@ -108,9 +108,9 @@ package com.animoto.filmstrip
 		}
 		
 		private static function onRemove():void {
-			if (engineDispatcher.hasEventListener(Event.ENTER_FRAME)==false) {
+			if (liveDispatcher.hasEventListener(Event.ENTER_FRAME)==false && engineDispatcher.hasEventListener(Event.ENTER_FRAME)==false) {
 				listening = false;
-				pulseShape.addEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
+				pulseShape.removeEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
 			}
 			if (frozen)
 				timer.pause();

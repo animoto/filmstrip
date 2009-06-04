@@ -1,0 +1,152 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf430
+{\fonttbl\f0\fswiss\fcharset0 ArialMT;\f1\fswiss\fcharset0 Arial-Black;\f2\fmodern\fcharset0 Courier;
+\f3\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red63\green95\blue191;\red0\green51\blue255;\red51\green153\blue102;
+\red255\green0\blue0;\red102\green153\blue204;\red153\green0\blue204;\red0\green0\blue0;\red0\green153\blue0;
+}
+\margl1440\margr1440\vieww15640\viewh15300\viewkind0
+\deftab720
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 ==========
+\f1\b\fs112 1
+\f0\b0\fs28 ===========\
+\pard\pardeftab720
+\cf0 To use FilmStrip, you first need to patch your animation engine to use PulseControl, which let FilmStrip "freeze" time and walk through frames at its own speed. These patches are very minor and your engine will continue to run normally when you're not rendering a FilmStrip.\
+\
+HOW TO: The patch for tween engines entails replacing enterframe listeners with 
+\f2\fs26 \cf2 PulseControl.addEngineListener(handler)
+\f0\fs28 \cf0  and similarly using 
+\f2\fs26 \cf2 PulseControl.removeEngineListener(handler)
+\f0\fs28 \cf0  then changing getTimer() or Date().time lookups with 
+\f2\fs26 \cf2 PulseControl.getCurrentTime()
+\f0\fs28 \cf0 . That's it.\
+\
+NOTE: PulseControl's methods and properties are all static but it does not throw any errors if you instantiate it. The Tweener and Go patches simply replace their pulse sprites with an empty PulseControl instance to minimize changes.\
+\pard\pardeftab720\ql\qnatural
+\cf0 \
+NOTE: PulseControl will work with most tween engines but probably won't with physics engines in this version. For example it does not work with the physics engine JigLib, because that engine uses unidirectional time instead of random-access time. (That is, it steps forward each tick but cannot step backward.)\
+\pard\pardeftab720
+\cf0 \
+Using these techniques you should be able to patch nearly any tween engine. Here are a few examples. Please let me know as these get outdated. In general it's best that you learn how to do these patches once now with your favorite engine, so that you're in control and can keep it up to date most easily -- we won't redistribute 3rd-party tween engines.\
+\
+\
+\pard\pardeftab720\ql\qnatural
+\cf0 \
+TWEENLITE / TWEENMAX\
+\
+\pard\pardeftab720\ql\qnatural
+
+\f3\fs22 \cf3 import\cf0  com.animoto.filmstrip.PulseControl;\
+\
+\cf3 public\cf0  \cf4 function\cf0  TweenLite($target:Object, $duration:Number, $vars:Object) \{\
+...\
+	currentTime = \cf5 PulseControl.getCurrentTime();\cf0 \
+	\cf5 PulseControl.addEngineListener(updateAll, false, 0, true);\
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 \
+\pard\pardeftab720\ql\qnatural
+
+\f3\fs22 \cf3 public\cf0  \cf3 static\cf0  \cf4 function\cf0  updateAll($e:Event = \cf3 null\cf0 ):\cf3 void\cf0  \{\
+	\cf6 var\cf0  time:uint = currentTime = \cf5 PulseControl.getCurrentTime()\cf0 , ml:Dictionary = masterList, a:Array, i:int, tween:TweenLite;\
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 \
+\
+\
+\
+TWEENER \
+\
+\pard\pardeftab720\ql\qnatural
+
+\f3\fs22 \cf7 class:\cf0  caurina.transitions.Tweener\
+\
+\pard\pardeftab720\ql\qnatural
+\cf3 import\cf0  com.animoto.filmstrip.PulseControl;
+\f0\fs28 \
+\
+
+\f3\fs22 \cf3 private\cf0  \cf3 static\cf0  \cf6 var\cf0  __tweener_controller__:PulseControl;
+\f0\fs28 \
+\
+
+\f3\fs22 \cf3 private\cf0  \cf3 static\cf0  \cf4 function\cf0  startEngine():\cf3 void\cf0  \{\
+...\
+	\cf8 __tweener_controller__ = \cf5 new PulseControl();\cf0 	\
+	\cf5 PulseControl.addEngineListener(Tweener.onEnterFrame);\cf0 \
+\
+\
+\cf3 private\cf0  \cf3 static\cf0  \cf4 function\cf0  stopEngine():\cf3 void\cf0  \{\
+...\
+	\cf5 PulseControl.removeEngineListener(Tweener.onEnterFrame);\cf0 \
+	__tweener_controller__ = \cf3 null\cf0 ;\
+\}\
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 \
+\pard\pardeftab720\ql\qnatural
+
+\f3\fs22 \cf3 public\cf0  \cf3 static\cf0  \cf4 function\cf0  updateTime():\cf3 void\cf0  \{\
+	_currentTime = \cf5 PulseControl.getCurrentTime();\cf0 \
+\}\
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 \
+\pard\pardeftab720
+\cf0 \
+GOASAP\
+\pard\pardeftab720
+
+\f3\fs22 \cf3 \
+\pard\pardeftab720
+\cf7 class:\cf0  org.goasap.GoEngine\
+\pard\pardeftab720
+\cf3 \
+import\cf0  com.animoto.filmstrip.PulseControl;\
+\cf3 \
+private\cf0  \cf3 static\cf0  \cf6 var\cf0  pulseSprite : PulseControl; \cf9 // used for ENTER_FRAME pulse
+\f0\fs28 \cf0 \
+\
+
+\f3\fs22 \cf3 private\cf0  \cf3 static\cf0  \cf4 function\cf0  update(event:Event) : \cf3 void\cf0  \
+\{\
+	\cf6 var\cf0  pulse:int = (event \cf3 is\cf0  TimerEvent ? ( event.target \cf3 as\cf0  Timer ).delay : ENTER_FRAME);\
+	\cf6 var\cf0  currentTime:Number = \cf5 (pulse==ENTER_FRAME ? PulseControl.getCurrentTime() : getTimer());\cf0 \
+\
+\cf3 private\cf0  \cf3 static\cf0  \cf4 function\cf0  addPulse(pulse : int) : Boolean\
+\{\
+	\cf3 if\cf0  (pulse==ENTER_FRAME) \{\
+		\cf3 if\cf0  (!pulseSprite) \{\
+			\cf5 timers[ENTER_FRAME] = pulseSprite = new PulseControl();\cf0 \
+			\cf5 PulseControl.addEngineListener(update);\cf0 \
+		\}
+\f0\fs28 \
+\
+
+\f3\fs22 \cf3 private\cf0  \cf3 static\cf0  \cf4 function\cf0  removePulse(pulse : int) : Boolean\
+\{\
+	\cf3 if\cf0  (pulse==ENTER_FRAME) \{\
+		\cf3 if\cf0  (pulseSprite) \{\
+			\cf5 PulseControl.removeEngineListener(update);\cf0 \
+			\cf3 delete\cf0  timers[ ENTER_FRAME ];\
+\
+\
+\pard\pardeftab720
+
+\f0\fs28 \cf0 \
+\
+==========
+\f1\b\fs112 2
+\f0\b0\fs28 ===========\
+\
+\
+The second thing you'll need to do is update your project code to also use PulseControl. It's easy. Here's a step by step:\
+\
+1. Search your code for pulses. Try the search string,\
+\
+    
+\f2 addEventListener(Event.ENTER_FRAME,
+\f0 \
+\
+Normally these are done on enterframe, but in cases where you're using timers that directly tie into the visuals of your code, you should convert those to use this}

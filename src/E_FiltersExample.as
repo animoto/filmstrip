@@ -17,6 +17,8 @@ package {
 	/**
 	 * You can add bitmap filters or pixel bender effects on any object's render layer.
 	 * 
+	 * scene.addFilter(cube1, cubeGlow);
+	 * 
 	 * One thing that's nice about this is that it's pretty intuitive to associate the
 	 * filter directly to the target object. Another plus (maybe) is that you can animate
 	 * filter properties like 'blurX' directly, without any special syntax or filter
