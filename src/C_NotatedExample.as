@@ -68,7 +68,7 @@ package {
 			// Filmstrip Tutorial:
 			
 			// 1. Patch your animation library to use PulseControl
-			//    (more info on this at http://labs.animoto.com soon, hopefully!)
+			//    (more info on this in the pulse_patch README file.)
 			
 			// 2. Wrap the scene to render in a new FilmStripScene. Use this one with Dice or OverlappingDice above...
 			var dice:Dice = example as Dice;

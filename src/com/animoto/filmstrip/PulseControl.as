@@ -102,9 +102,10 @@ package com.animoto.filmstrip
 		
 		private static function onAdd():void {
 			listening = true;
-			pulseShape.addEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
-			if (!frozen)
+			if (!frozen) {
 				timer.start();
+				pulseShape.addEventListener(Event.ENTER_FRAME, dispatchEnterFrame);
+			}
 		}
 		
 		private static function onRemove():void {
