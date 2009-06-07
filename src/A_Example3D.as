@@ -70,7 +70,7 @@ package {
 			filmStrip.height = example.contentHeight;
 			filmStrip.backgroundColor = 0xf0ecaf;
 			filmStrip.durationInSeconds = 3;
-			filmStrip.frameRate = 20;
+			filmStrip.frameRate = 30;
 			filmStrip.bufferMilliseconds = 1; // Important: read the notes on this property in NotatedExample before you change this!
 			
 			playbackBitmap = new PlaybackFromRAM(filmStrip);

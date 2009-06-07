@@ -173,9 +173,8 @@ package filmstripexamples
 			
 			Tweener.addTween(cube2, {rotationY:-90, rotationX:360, rotationZ:360, z:-250, time:1.6, transition:"easeoutquad"});
 			Tweener.addTween(cube2, {y:cubeSize/2, time:1.6, transition:"easeoutbounce"});
-			Tweener.addTween(cube2, {x:500, time:.6, transition:"easeoutquad", onComplete:function():void {
-				Tweener.addTween(cube2, {x:100, time:1, transition:"easeoutcirc"});
-			}});
+			Tweener.addTween(cube2, {x:500, time:.6, transition:"easeoutquad"});
+			Tweener.addTween(cube2, {x:100, time:1, delay:.6, transition:"easeoutquad"}); // bounce back
 			
 			Tweener.addTween(camera, {x:-320, y:350, z:-800, rotationY:35, rotationX:15, time:1, transition:"easeinoutsine"});
 			
