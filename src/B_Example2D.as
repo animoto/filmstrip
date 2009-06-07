@@ -16,7 +16,9 @@ package {
 	
 	/**
 	 * This example wraps a Sprite scene -- which wouldn't necessarily 
-	 * need to be 2D if you're using Flash 10.
+	 * need to be 2D if you're using Flash 10. This example uses Tweener
+	 * but should be easy for you to switch to your preferred engine's 
+	 * syntax -- see filmstripexamples.Photos.
 	 * 
 	 * For more of a tutorial, see the 'NotatedExample' file.
 	 * 

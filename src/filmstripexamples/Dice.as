@@ -7,13 +7,11 @@ package filmstripexamples
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.filters.BitmapFilter;
 	import flash.filters.BlurFilter;
 	
 	import org.papervision3d.cameras.Camera3D;
 	import org.papervision3d.core.proto.LightObject3D;
 	import org.papervision3d.core.proto.MaterialObject3D;
-	import org.papervision3d.events.FileLoadEvent;
 	import org.papervision3d.materials.BitmapMaterial;
 	import org.papervision3d.materials.MovieMaterial;
 	import org.papervision3d.materials.utils.MaterialsList;
@@ -169,7 +167,7 @@ package filmstripexamples
 		}
 		
 		public function runAnimation():void {
-			
+			 
 			Tweener.addTween(cube1, {x:100, z:100, rotationX:360, time:1.7, transition:"easeoutcirc"});
 			Tweener.addTween(cube1, {rotationY:180, rotationZ:-180, y:cubeSize/2, time:1.7, transition:"easeoutbounce"});
 			
@@ -181,21 +179,21 @@ package filmstripexamples
 			
 			Tweener.addTween(camera, {x:-320, y:350, z:-800, rotationY:35, rotationX:15, time:1, transition:"easeinoutsine"});
 			
-
+/* 
 			// Go animation sequence using John Grden's GO3D extension
 			
-//			var tweenGroup:PlayableGroup = new PlayableGroup();
-//			tweenGroup.addChild( new Tween3D(cube1, [Value.x(200), Value.z(100), Value.rotationX(360)], 1.7, Easing.easeOutCirc) );
-//			tweenGroup.addChild( new Tween3D(cube1, [Value.rotationY(180), Value.rotationZ(-180), Value.y(cubeSize/2)], 1.7, Easing.easeOutBounce) );
-//			
-//			tweenGroup.addChild( new Tween3D(cube2, [Value.rotationY(-90), Value.rotationX(360), Value.rotationZ(360), Value.z(-250)], 1.6, Easing.easeOutQuad) );
-//			tweenGroup.addChild( new Tween3D(cube2, [Value.y(cubeSize/2)], 1.6, Easing.easeOutBounce) );
-//			tweenGroup.addChild( new Sequence(	new Tween3D(cube2, [Value.x(500)], .6, Easing.easeOutQuad),
-//												new Tween3D(cube2, [Value.x(100)], 1, Easing.easeOutCirc) ) );
-//			
-//			tweenGroup.addChild( new Tween3D(camera, [Value.x(-320), Value.y(350), Value.z(-800), Value.rotationY(35), Value.rotationX(15)], 1, Easing.easeInOutSine) );
-//			
-//			tweenGroup.start();
+			var tweenGroup:PlayableGroup = new PlayableGroup();
+			tweenGroup.addChild( new Tween3D(cube1, [Value.x(200), Value.z(100), Value.rotationX(360)], 1.7, Easing.easeOutCirc) );
+			tweenGroup.addChild( new Tween3D(cube1, [Value.rotationY(180), Value.rotationZ(-180), Value.y(cubeSize/2)], 1.7, Easing.easeOutBounce) );
+			
+			tweenGroup.addChild( new Tween3D(cube2, [Value.rotationY(-90), Value.rotationX(360), Value.rotationZ(360), Value.z(-250)], 1.6, Easing.easeOutQuad) );
+			tweenGroup.addChild( new Tween3D(cube2, [Value.y(cubeSize/2)], 1.6, Easing.easeOutBounce) );
+			tweenGroup.addChild( new Sequence(	new Tween3D(cube2, [Value.x(500)], .6, Easing.easeOutQuad),
+												new Tween3D(cube2, [Value.x(100)], 1, Easing.easeOutCirc) ) );
+			
+			tweenGroup.addChild( new Tween3D(camera, [Value.x(-320), Value.y(350), Value.z(-800), Value.rotationY(35), Value.rotationX(15)], 1, Easing.easeInOutSine) );
+			
+			tweenGroup.start(); */
 		}
 	}
 }

@@ -16,7 +16,11 @@ package {
 	
 	/**
 	 * FilmStrip is written to be extensible to various types of scenes.
-	 * This one wraps a simple Papervision3D scene.
+	 * 
+	 * This one wraps a simple Papervision3D scene and uses Tweener for
+	 * its animation -- if you open the file filmstripexamples.Dice you'll
+	 * also see the animation in GoASAP format which you can switch to, or
+	 * modify the animation code to fit your engine's syntax.
 	 * 
 	 * For more of a tutorial, see the 'NotatedExample' file.
 	 * 

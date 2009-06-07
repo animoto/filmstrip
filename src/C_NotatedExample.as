@@ -17,7 +17,9 @@ package {
 	[SWF(backgroundColor="#FFFFFF", frameRate="30")]
 	
 	/**
-	 * Example with tutorial notes.
+	 * Example with tutorial notes. This example uses Tweener
+	 * but should be easy for you to switch to your preferred engine's 
+	 * syntax -- see filmstripexamples.OverlappingDice.
 	 * 
 	 * @author moses gunesch
 	 */
@@ -89,12 +91,20 @@ package {
 			
 			// Records and plays back frames from memory
 			playbackBitmap = new PlaybackFromRAM(filmStrip);
-			
+
 			
 			// --== More ==--
 			
 			
-			// (Advanced settings to explore.)
+			// besides width and height, you can also set the top and left of the capture rectangle.
+			
+//			filmStrip.width = example.contentWidth-200;
+//			filmStrip.height = example.contentHeight-200;
+//			filmStrip.top = 100;
+//			filmStrip.left = 100;
+			
+			
+			// Advanced settings to explore.
 			
 			filmStrip.bufferMilliseconds = 1; // KNOW THIS!! FilmStrip is extremely processor intensive and can easily lock up your computer! 
 										// This setting gives it some breathing room between frames, which at least allows the split-screen

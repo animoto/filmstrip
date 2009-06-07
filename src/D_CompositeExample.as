@@ -18,7 +18,9 @@ package {
 	
 	/**
 	 * FilmStrips can render a stack of scenes at once -- this example
-	 * stacks our 3D and 2D examples.
+	 * stacks our 3D and 2D examples. This example uses Tweener
+	 * but should be easy for you to switch to your preferred engine's 
+	 * syntax -- see filmstripexamples.Photos and filmstripexamples.Dice.
 	 * 
 	 * @author moses gunesch
 	 */

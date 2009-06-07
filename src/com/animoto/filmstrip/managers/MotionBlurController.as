@@ -12,6 +12,7 @@ package com.animoto.filmstrip.managers
 	import flash.filters.BitmapFilter;
 	import flash.filters.BlurFilter;
 	import flash.geom.ColorTransform;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
@@ -35,6 +36,7 @@ package com.animoto.filmstrip.managers
 		protected var delay: int;
 		protected var primaryOnly: Boolean = false;
 		protected var wholeScene: Boolean = false;
+		protected var clipMatrix: Matrix;
 		
 		public function MotionBlurController(controller:FilmStripSceneController, target:Object, wholeScene:Boolean)
 		{
@@ -50,6 +52,8 @@ package com.animoto.filmstrip.managers
 			if (controller.filmStrip.blurMode == FilmStripBlurMode.NONE) {
 				primaryOnly = true;
 			}
+			clipMatrix = new Matrix();
+			clipMatrix.translate(-controller.filmStrip.top, -controller.filmStrip.left);
 			
 			// Correct static settings.
 			strength = Math.max(0, strength);
@@ -130,7 +134,7 @@ package com.animoto.filmstrip.managers
 			else {
 				drawUtil.manualPreDraw([target]); // Toggles other objects' visibility off temporarily and rerenders 3d scene. Restored in complete().
 			}
-			drawUtil.bitmapData.draw(drawUtil.drawSource);
+			drawUtil.bitmapData.draw(drawUtil.drawSource, clipMatrix);
 			var bitmap:Bitmap = new Bitmap(drawUtil.bitmapData);
 			var filters:Array = controller.scene.getFilters(target, false);
 			if (filters!=null) {
@@ -146,7 +150,7 @@ package com.animoto.filmstrip.managers
 			var filters:Array = controller.scene.getFilters(target, true);
 			
 			var bd:BitmapData = newBitmapData();
-			bd.draw(drawUtil.drawSource);
+			bd.draw(drawUtil.drawSource, clipMatrix);
 			if (filters==null) {
 				filters = [];
 			}

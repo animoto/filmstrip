@@ -73,7 +73,7 @@ package {
 			b.background = true;
 			b.backgroundColor = 0xEEEEEE;
 			b.selectable = false;
-			b.text = "add listener";
+			b.text = "add readout listener";
 			b.autoSize = "left";
 			b.x = 100;
 			b.y = 240;
@@ -87,7 +87,7 @@ package {
 			b.background = true;
 			b.backgroundColor = 0xEEEEEE;
 			b.selectable = false;
-			b.text = "remove listener";
+			b.text = "remove readout listener";
 			b.autoSize = "left";
 			b.x = 100;
 			b.y = 270;

@@ -1,0 +1,110 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf430
+{\fonttbl\f0\fswiss\fcharset0 ArialMT;\f1\fswiss\fcharset0 Arial-Black;}
+{\colortbl;\red255\green255\blue255;\red64\green64\blue64;\red128\green0\blue128;}
+\margl1440\margr1440\vieww13360\viewh19360\viewkind0
+\deftab720
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 \
+====
+\f1\b\fs62 Welcome to FilmStrip
+\f0\b0\fs28 ====\
+\
+
+\fs36 \cf2 FilmStrip is a library that lets you process code-based animations into frames of video with natural-looking motion blur.
+\fs28 \cf0 \
+\
+\
+\pard\pardeftab720\ql\qnatural
+
+\i\b \cf3 FilmStrip work you first need to add a patch to your tween library.
+\i0\b0 \cf0  We did this so that you could use your favorite animation system with FilmStrip instead of forcing some custom one on you. Don't worry, it's easy and only takes about 5 minutes!\
+\
+\
+\pard\pardeftab720\ql\qnatural
+
+\b\fs38 \cf0 \ul \ulc0 TO VIEW THE EXAMPLES:
+\b0\fs28 \ulnone \
+\pard\pardeftab720\ql\qnatural
+\cf0 \
+The examples included here use Tweener -- which is not mandatory to use FilmStrip, it's just what the example files are animated with. \
+\
+Start by checking out the code for Tweener (http://code.google.com/p/tweener/) and Papervision3D (http://code.google.com/p/papervision3d/) and linking your project classpaths to both.\
+\
+Next you'll need to do the patch on Tweener make FilmStrip work, which is about 5 lines of code. Open the separate \cf3 README.rtf\cf0  file in the \cf3 pulse_patch\cf0  subdirectory in this project for instructions. Once you've done the patch, you're ready to run the examples.\
+\
+Remember: FilmStrip is made to work with just about \ul any tween library\ulnone . So after you've walked through the tutorial examples, go ahead and patch whichever one you like to use, and you'll be rolling with FilmStrip!\
+\
+\
+\
+\pard\pardeftab720\ql\qnatural
+
+\b\fs32 \cf0 WHAT'S FILMSTRIP FOR?
+\b0\fs28 \
+\
+\pard\pardeftab720\li360\sa120\ql\qnatural
+\cf0 * A spaceship game could feature cinematic explosions that are actually pre-rendered video clips. These could be seamlessly integrated since they're made from the real game models.\
+* A website or kiosk could feature fast, smooth navigational swoops in the same fashion.\
+* An advanced AIR app could let users animate 2D & 3D content then render it to real video.\
+* Rendered segments could give websites a more TV-like feel, without needing to recreate scenes or models in a different 3D or video program.\
+* Pixel Bender filters can be used to do sophisticated video post-processing, directly from ActionScript.\
+* It might be possible to pre-render transitions in the background of an interactive site before they're used, like transitions between a user's photos.\
+\pard\pardeftab720\li720\sa120\ql\qnatural
+
+\fs24 \cf0 (However, FilmStrip is very processor-intensive so we don't recommend that you use it in browser-based client apps. You can do slower, less-intensive renders using buffer settings, but it would be pretty hard to pull this idea off successfully.)\
+\pard\pardeftab720\ql\qnatural
+
+\fs28 \cf0 \
+\
+\
+\pard\pardeftab720\ql\qnatural
+
+\b\fs32 \cf0 ADDITIONAL INFORMATION
+\b0\fs28 \
+\
+\
+KNOWN LIMITATIONS:\
+\
+\pard\pardeftab720\li360\ql\qnatural
+\cf0 * This early version of FilmStrip does not calculate the animations of a scene's camera3D or each object's hierarchy of parent objects into motion-blurs.\
+\
+* This early version of FilmStrip ships with basic Sprite and Papervision3D support. It is also extensible for Sandy, Away or other environments, so please express your interest in collaborating on those projects.\
+\
+* This early version of FilmStrip doesn't work with DAE models -- it seems to animate the triangle mesh and not the skin, please help us fix this issue!\
+\
+* Processing to video: This portion of the project is unfinished. We currently have:\
+-- a PlaybackFromRAM utility\
+-- a very rough draft of an AIR app that dumps Filmstrip frames as bitmapData, JPG or PNG \
+-- an AIR player utility to view the saved frame sequence.\
+   (the AIR apps are hosted under a separate project named filmstripAIR.)\
+\
+We plan to release a scripts for processing frames to MP4 or FLV using FFMpeg, and would love your collaboration and help with getting that together. There are also a few libraries out there for processing video inside ActionScript which would be interesting to try out. As a fallback option, some professional video programs can generate video from a frame sequence.\
+\pard\pardeftab720\ql\qnatural
+\cf0 \
+\
+\
+\pard\pardeftab720\ql\qnatural
+
+\b\fs32 \cf0 STAY IN TOUCH!
+\b0\fs28 \
+\
+FilmStrip uses an MIT license that lets you freely modify it and use it \
+in personal and commercial projects. We'd love to know how you use it, \
+so please drop us a line! :-)\
+\
+filmstrip@animoto.com\
+http://labs.animoto.com\
+http://github.com/animoto/filmstrip/\
+\
+Thanks!\
+Moses Gunesch\
+Senior Flash Engineer\
+Animoto.com\
+\pard\pardeftab720\ql\qnatural
+
+\fs24 \cf0 \
+\pard\pardeftab720\ql\qnatural
+
+\fs28 \cf0 \
+\
+}

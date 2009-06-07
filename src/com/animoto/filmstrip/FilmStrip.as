@@ -7,6 +7,8 @@ package com.animoto.filmstrip
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
+	import flash.geom.Matrix;
+	import flash.geom.Rectangle;
 	import flash.utils.Timer;
 
 	/**
@@ -33,6 +35,8 @@ package com.animoto.filmstrip
 		public var bitmapScene: FilmStripBitmapScene;
 		public var width: Number = NaN;
 		public var height: Number = NaN;
+		public var top: Number = 0;
+		public var left: Number = 0;
 		public var frameRate: int = 15;
 		public var durationInSeconds: Number = NaN;
 		public var captureMode:String = FilmStripCaptureMode.EACH_OBJECT;
@@ -58,6 +62,11 @@ package com.animoto.filmstrip
 		protected var _clock: StopWatch = new StopWatch();
 		protected var _frameCount: int;
 		
+		/**
+		 * Constructor accepts the primary scene to render, you can add more afterwards using addScene.
+		 * 
+		 * @param scene An instance of a subclass of FilmStripScene such as FilmStripScenePV3D or FilmStripSceneSprite.
+		 */
 		public function FilmStrip(scene:FilmStripScene)
 		{
 			super();
@@ -66,6 +75,11 @@ package com.animoto.filmstrip
 			_buffer.addEventListener(TimerEvent.TIMER_COMPLETE, doRenderNext);
 		}
 		
+		/**
+		 * A single filmstrip can render a stack of scenes.
+		 * 
+		 * @param scene An instance of a subclass of FilmStripScene such as FilmStripScenePV3D or FilmStripSceneSprite.
+		 */
 		public function addScene(scene:FilmStripScene):void {
 			scenes.push( scene );
 		}
@@ -74,6 +88,16 @@ package com.animoto.filmstrip
 			return scenes[index] as FilmStripScene;
 		}
 		
+		/**
+		 * Begin rendering the FilmStrip.
+		 * 
+		 * @param width				Capture width, which defaults to the first scene's actualContentWidth if not specified.
+		 * @param height			Capture height, which defaults to the first scene's actualContentHeight if not specified.
+		 * @param frameRate			Capture frames per second, which may differ from your project SWF's frameRate.
+		 * @param durationInSeconds	Capture duration in seconds; number of frames captured will vary based on frameRate.
+		 * @param transparent		Whether frames captured are transparent or opaque.
+		 * @param backgroundColor	If transparent is false, the background matte color.
+		 */
 		public function startRendering(width:Number=NaN, height:Number=NaN, frameRate:Number=NaN, durationInSeconds:Number=NaN, transparent:*=null, backgroundColor:Number=NaN):void {
 			if (_busy) {
 				stopRendering();

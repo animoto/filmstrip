@@ -19,7 +19,7 @@ package com.animoto.filmstrip.managers
 		override protected function captureSubframe():void {
 			controller.scene.redrawScene();
 			refreshDrawUtil();
-			drawUtil.bitmapData.draw(drawUtil.drawSource);
+			drawUtil.bitmapData.draw(drawUtil.drawSource, clipMatrix);
 			
 			var bitmap:Bitmap = new Bitmap(drawUtil.bitmapData);
 			bitmap.blendMode = blendMode;
