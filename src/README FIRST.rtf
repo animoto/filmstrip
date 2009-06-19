@@ -26,8 +26,7 @@
 
 \b\fs38 \cf0 \ul \ulc0 TO VIEW THE EXAMPLES:
 \b0\fs28 \ulnone \
-\pard\pardeftab720\ql\qnatural
-\cf0 \
+\
 The examples included here use Tweener -- which is not mandatory to use FilmStrip, it's just what the example files are animated with. \
 \
 Start by checking out the code for Tweener (http://code.google.com/p/tweener/) and Papervision3D (http://code.google.com/p/papervision3d/) and linking your project classpaths to both.\
@@ -97,10 +96,12 @@ http://github.com/animoto/filmstripAIR/\
 The mp4 sample video in this project was produced using an open source utility called ffmpeg from the command line on a mac. This utility is not very easy to set up for beginners, hopefully we can improve on this part of the process in the future. We would love your collaboration and help with this stuff!\
 \
 From within the output directory of a 30-fps PNG sequence:\
+\pard\pardeftab720\li360\ql\qnatural
 
-\f2\fs24 ffmpeg -y -s 864x480 -i %04d.png -vcodec mpeg4 -pass 1 -b 4M -r 30 filmstripTest.mp4\
+\f2\fs24 \cf0 ffmpeg -y -s 864x480 -i %04d.png -vcodec mpeg4 -pass 1 -b 4M -r 30 filmstripTest.mp4\
+\pard\pardeftab720\li360\ql\qnatural
 
-\f0\fs28 \
+\f0\fs28 \cf0 \
 The same command can be run again using -pass 2 to increase quality.
 \f2\fs24 \
 
@@ -119,7 +120,7 @@ FilmStrip uses an MIT license that lets you freely modify it and use it \
 in personal and commercial projects. We'd love to know how you use it, \
 so please drop us a line! :-)\
 \
-filmstrip@animoto.com  [..still setting this addy up at time of writing]\
+filmstrip@animoto.com\
 http://labs.animoto.com\
 http://github.com/animoto/filmstrip/\
 \
