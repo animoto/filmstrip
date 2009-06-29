@@ -5,6 +5,7 @@ package com.animoto.filmstrip.output
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.DisplayObjectContainer;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -22,18 +23,20 @@ package com.animoto.filmstrip.output
 	 */
 	public class PlaybackFromRAM extends Bitmap
 	{
-		public var loop:Boolean;
 		public var filmStrip: FilmStrip;
+		public var loop:Boolean;
+		public var autoAddTo: DisplayObjectContainer; // if set, does addChild(this) when done
 		public var datas: Array = new Array();
 		public var timer: Timer;
 		public var currentFrame: int = -1;
 		public var playing:Boolean = false;
 		public var pausedTF: TextField = new TextField();
 		
-		public function PlaybackFromRAM(filmStrip:FilmStrip, loop:Boolean=true) {
+		public function PlaybackFromRAM(filmStrip:FilmStrip, loop:Boolean=true, autoAddTo:DisplayObjectContainer=null) {
 			super();
 			this.filmStrip = filmStrip;
 			this.loop = loop;
+			this.autoAddTo = autoAddTo;
 			filmStrip.addEventListener(FilmStripEvent.FRAME_RENDERED, handleRenderEvents);
 			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, handleRenderEvents);
 			timer = new Timer(filmStrip.frameDuration, 0);
@@ -51,6 +54,9 @@ package com.animoto.filmstrip.output
 					filmStrip.removeEventListener(FilmStripEvent.FRAME_RENDERED, handleRenderEvents);
 					filmStrip.removeEventListener(FilmStripEvent.RENDER_STOPPED, handleRenderEvents);
 					filmStrip = null;
+					if (autoAddTo!=null && parent==null) {
+						autoAddTo.addChild(this);
+					}
 					playVideo();
 					return;
 			}
@@ -60,7 +66,9 @@ package com.animoto.filmstrip.output
 				return;
 			reset();
 			this.parent.addEventListener(MouseEvent.MOUSE_DOWN, togglePlay);
-			this.stage.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyPress);
+			if (stage!=null) {
+				this.stage.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyPress);
+			}
 			playing = true;
 			nextFrame();
 			timer.start();
@@ -93,7 +101,9 @@ package com.animoto.filmstrip.output
 			timer.reset();
 			togglePausedTF(false);
 			this.parent.removeEventListener(MouseEvent.MOUSE_DOWN, togglePlay);
-			this.stage.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeyPress);
+			if (stage!=null) {
+				this.stage.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeyPress);
+			}
 		}
 		
 		protected function togglePausedTF(show:Boolean):void {

@@ -192,9 +192,10 @@ package com.animoto.filmstrip.managers
 			else {
 				var blur:MotionBlurController = (motionBlurs[motionBlurIndex] as MotionBlurController);
 				if (blur.subframes>0) {
-					trace("render "+ blur.subframes + " subframes for "+ blur.target.name+"...");
+					trace("render "+ blur.subframes + " subframes for target '"+ blur.target.name+"'...");
 				}
 				blur.render();
+				filmStrip.bitmapScene.addChild(blur.container);
 			}
 		}
 		

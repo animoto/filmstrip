@@ -73,6 +73,10 @@ package com.animoto.filmstrip.managers
 			if (primaryOnly || subframes==0) {
 				complete();
 			}
+			else if (delay > 0) {
+				buffer.reset();
+				buffer.start();
+			}
 			else {
 				nextSubFrame();
 			}
@@ -82,14 +86,15 @@ package com.animoto.filmstrip.managers
 			if (controller==null) {
 				return;
 			}
+			index++;
 			var time:int = controller.currentTime + (subframeDuration * index * offset);
-			if (++index > subframes || time < 0) {
+			if (index > subframes || time < 0) {
 				complete();
 				return;
 			}
 			
 			// Update animation and capture subframe.
-			PulseControl.setTime(controller.currentTime + (subframeDuration * index * offset));
+			PulseControl.setTime(time);
 			captureSubframe();
 			controller.subframeComplete(this, index, false);
 			
@@ -132,7 +137,9 @@ package com.animoto.filmstrip.managers
 				controller.scene.redrawScene();
 			}
 			else {
-				drawUtil.manualPreDraw([target]); // Toggles other objects' visibility off temporarily and rerenders 3d scene. Restored in complete().
+				var redrew:Boolean = drawUtil.manualPreDraw([target]); // Toggles other objects' visibility off temporarily and rerenders 3d scene. Restored in complete().
+				if (!redrew)
+					controller.scene.redrawScene();
 			}
 			drawUtil.bitmapData.draw(drawUtil.drawSource, clipMatrix);
 			var bitmap:Bitmap = new Bitmap(drawUtil.bitmapData);
