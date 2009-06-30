@@ -2,6 +2,7 @@ package com.animoto.filmstrip.output
 {
 	import com.animoto.filmstrip.FilmStrip;
 	import com.animoto.filmstrip.FilmStripEvent;
+	import com.animoto.filmstrip.PulseControl;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -32,8 +33,12 @@ package com.animoto.filmstrip.output
 		public var playing:Boolean = false;
 		public var pausedTF: TextField = new TextField();
 		
+		protected var lastFrameTime: Number;
+		protected var beginTime: Number;
+		
 		public function PlaybackFromRAM(filmStrip:FilmStrip, loop:Boolean=true, autoAddTo:DisplayObjectContainer=null) {
 			super();
+			this.smoothing = true;
 			this.filmStrip = filmStrip;
 			this.loop = loop;
 			this.autoAddTo = autoAddTo;
@@ -53,7 +58,6 @@ package com.animoto.filmstrip.output
 				case FilmStripEvent.RENDER_STOPPED: 
 					filmStrip.removeEventListener(FilmStripEvent.FRAME_RENDERED, handleRenderEvents);
 					filmStrip.removeEventListener(FilmStripEvent.RENDER_STOPPED, handleRenderEvents);
-					filmStrip = null;
 					if (autoAddTo!=null && parent==null) {
 						autoAddTo.addChild(this);
 					}
@@ -61,6 +65,7 @@ package com.animoto.filmstrip.output
 					return;
 			}
 		}
+		
 		public function playVideo():void {
 			if (datas.length==0)
 				return;
@@ -69,8 +74,10 @@ package com.animoto.filmstrip.output
 			if (stage!=null) {
 				this.stage.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyPress);
 			}
+			beginTime = PulseControl.getCurrentTime();
 			playing = true;
 			nextFrame();
+			timer.delay = filmStrip.frameDuration;
 			timer.start();
 		}
 		
@@ -94,10 +101,21 @@ package com.animoto.filmstrip.output
 					reset();
 			}
 			this.bitmapData = datas[currentFrame] as BitmapData;
+			if (playing && !isNaN(lastFrameTime)) {
+				timer.stop();
+				var diff:Number = ((PulseControl.getCurrentTime() - lastFrameTime) - filmStrip.frameDuration);
+				timer.delay = Math.min(filmStrip.frameDuration-5, Math.max(1, filmStrip.frameDuration - diff));
+				timer.start();
+			}
+			lastFrameTime = PulseControl.getCurrentTime();
 		}
 		
 		public function reset():void {
+			if (!isNaN(beginTime)) {
+				trace("playback took " + ((PulseControl.getCurrentTime()-beginTime)/1000).toFixed(1) + 's');
+			}
 			currentFrame = -1;
+			lastFrameTime = beginTime = NaN;
 			timer.reset();
 			togglePausedTF(false);
 			this.parent.removeEventListener(MouseEvent.MOUSE_DOWN, togglePlay);
@@ -121,14 +139,6 @@ package com.animoto.filmstrip.output
 				pausedTF.selectable = false;
 				pausedTF.autoSize = TextFieldAutoSize.LEFT;
 				pausedTF.x = pausedTF.y = 5;
-//				if (datas.length>0) {
-//					pausedTF.x = datas[0].width / 2 - pausedTF.width / 2 + this.x;
-//					pausedTF.y = datas[0].height / 2 - pausedTF.height / 2 + this.y;
-//				}
-//				else {
-//					pausedTF.x = this.x + 100;
-//					pausedTF.y = this.y + 50;
-//				}
 				this.parent.addChild(pausedTF);
 			}
 		}
