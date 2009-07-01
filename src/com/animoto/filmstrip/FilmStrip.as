@@ -7,8 +7,6 @@ package com.animoto.filmstrip
 	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
-	import flash.geom.Matrix;
-	import flash.geom.Rectangle;
 	import flash.utils.Timer;
 
 	/**
@@ -54,13 +52,17 @@ package com.animoto.filmstrip
 			return int(1000 / frameRate);
 		}
 		
+		public function get framesRendered(): int {
+			return _frameCount;
+		}
+		
 		protected var _busy: Boolean = false;
 		protected var _startTime:Number;
 		protected var _currentTime:Number;
 		protected var _index: int;
 		protected var _buffer:Timer = new Timer(1, 1);
 		protected var _clock: StopWatch = new StopWatch();
-		protected var _frameCount: int;
+		protected var _frameCount: int = 0;
 		
 		/**
 		 * Constructor accepts the primary scene to render, you can add more afterwards using addScene.
@@ -134,23 +136,21 @@ package com.animoto.filmstrip
 		}
 		
 		public function stopRendering():void {
-			if (_busy) {
-				_clock.pause();
-				var stats: String = "Time elapsed: "+_clock.seconds+" seconds "+
-									 "for "+(_frameCount * frameRate / 1000).toFixed(1)+" seconds of video. " +
-									"("+_frameCount+" frames @ " + (_clock.seconds/_frameCount).toFixed(1)+" seconds/frame)";
-				trace(stats);
-				dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED, null, stats) );
-				PulseControl.resume(); // unfreezes time for animation engines
+			if (!_busy) {
+				return;
 			}
-			bitmapScene.clearDisplay();
-			_buffer.reset();
-			if (_busy) {
-				try { (scenes[_index] as FilmStripScene).controller.stopRendering(); }
-				catch (e:Error) { }
-			}
-			_index = 0;
 			_busy = false;
+			try { _buffer.stop(); } catch (e:Error){}
+			try { bitmapScene.clearDisplay(); } catch (e:Error){}
+			_clock.pause();
+			try { (scenes[_index] as FilmStripScene).controller.stopRendering(); } catch (e:Error){}
+			_index = 0;
+			var stats: String = "Time elapsed: "+_clock.seconds+" seconds "+
+								 "for "+(_frameCount * frameRate / 1000).toFixed(1)+" seconds of video. " +
+								"("+_frameCount+" frames @ " + (_clock.seconds/_frameCount).toFixed(1)+" seconds/frame)";
+			trace(stats);
+			dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED, null, stats) );
+			PulseControl.resume(); // unfreezes time for animation engines
 		}
 		
 		public function destroy(destroyScenes:Boolean=false):void {
@@ -175,6 +175,9 @@ package com.animoto.filmstrip
 		}
 		
 		protected function doRenderNext(event:TimerEvent=null):void {
+			if (!_busy) {
+				return;
+			}
 			var scene:FilmStripScene = (scenes[_index] as FilmStripScene);
 			if (scene==null) {
 				error("Scene not valid.");
@@ -187,7 +190,9 @@ package com.animoto.filmstrip
 				bitmapScene.clearDisplay();
 			}
 			scene.controller.init(this, sceneCompleteCallback);
-			scene.controller.renderFrame(_currentTime);
+			if (_busy) {
+				scene.controller.renderFrame(_currentTime);
+			}
 		}
 		
 		protected function sceneCompleteCallback():void {

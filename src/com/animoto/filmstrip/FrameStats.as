@@ -9,7 +9,7 @@ package com.animoto.filmstrip
 		}
 		
 		public function toString():String {
-			
+			return null;
 		}
 	}
 }

@@ -53,7 +53,7 @@ package com.animoto.filmstrip.managers
 				primaryOnly = true;
 			}
 			clipMatrix = new Matrix();
-			clipMatrix.translate(-controller.filmStrip.top, -controller.filmStrip.left);
+			clipMatrix.translate(-controller.filmStrip.left, -controller.filmStrip.top);
 			
 			// Correct static settings.
 			strength = Math.max(0, strength);

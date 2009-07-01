@@ -63,7 +63,7 @@ package com.animoto.filmstrip.managers
 		}
 		
 		public function renderFrame(currentTime:int):void {
-			//trace("renderFrame");
+			trace("renderFrame");
 			this.currentTime = currentTime;
 			
 			// MotionBlurControllers are used for capture even when there are no subframes.
@@ -84,6 +84,9 @@ package com.animoto.filmstrip.managers
 		}
 		
 		protected function singleCapture(subframes:int):void {
+			if (scene==null) {
+				return; // render stopped
+			}
 			motionBlurs = [ sceneBlur ];
 			sceneBlur.subframes = subframes;
 			scene.redrawScene();
@@ -98,6 +101,9 @@ package com.animoto.filmstrip.managers
 		}
 		
 		protected function setupMultiCapture():void {
+			if (scene==null) {
+				return; // render stopped
+			}
 			
 			// In many cases this step is really only needed once, but it keeps us synced as objects enter and leave the scene.
 			makeBlurControllers();

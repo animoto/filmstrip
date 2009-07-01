@@ -7,6 +7,7 @@ package com.animoto.filmstrip.output
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObjectContainer;
+	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -27,6 +28,7 @@ package com.animoto.filmstrip.output
 		public var filmStrip: FilmStrip;
 		public var loop:Boolean;
 		public var autoAddTo: DisplayObjectContainer; // if set, does addChild(this) when done
+		public var autoPlay: Boolean; // True by default: play when filmstrip completes (must be added to stage first)
 		public var datas: Array = new Array();
 		public var timer: Timer;
 		public var currentFrame: int = -1;
@@ -36,12 +38,13 @@ package com.animoto.filmstrip.output
 		protected var lastFrameTime: Number;
 		protected var beginTime: Number;
 		
-		public function PlaybackFromRAM(filmStrip:FilmStrip, loop:Boolean=true, autoAddTo:DisplayObjectContainer=null) {
+		public function PlaybackFromRAM(filmStrip:FilmStrip, loop:Boolean=true, autoAddTo:DisplayObjectContainer=null, autoPlay:Boolean=true) {
 			super();
 			this.smoothing = true;
 			this.filmStrip = filmStrip;
 			this.loop = loop;
 			this.autoAddTo = autoAddTo;
+			this.autoPlay = autoPlay;
 			filmStrip.addEventListener(FilmStripEvent.FRAME_RENDERED, handleRenderEvents);
 			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, handleRenderEvents);
 			timer = new Timer(filmStrip.frameDuration, 0);
@@ -61,17 +64,23 @@ package com.animoto.filmstrip.output
 					if (autoAddTo!=null && parent==null) {
 						autoAddTo.addChild(this);
 					}
-					playVideo();
+					if (autoPlay && stage!=null) {
+						playVideo();
+					}
 					return;
 			}
+		}
+		
+		public function reverse():void {
+			datas.reverse();
 		}
 		
 		public function playVideo():void {
 			if (datas.length==0)
 				return;
 			reset();
-			this.parent.addEventListener(MouseEvent.MOUSE_DOWN, togglePlay);
 			if (stage!=null) {
+				this.stage.addEventListener(MouseEvent.MOUSE_DOWN, togglePlay);
 				this.stage.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyPress);
 			}
 			beginTime = PulseControl.getCurrentTime();
@@ -95,6 +104,7 @@ package com.animoto.filmstrip.output
 		
 		public function nextFrame(e:TimerEvent=null):void {
 			if (++currentFrame>=datas.length && playing) {
+				dispatchEvent(new Event(Event.COMPLETE));
 				if (loop)
 					playVideo();
 				else
@@ -118,8 +128,9 @@ package com.animoto.filmstrip.output
 			lastFrameTime = beginTime = NaN;
 			timer.reset();
 			togglePausedTF(false);
-			this.parent.removeEventListener(MouseEvent.MOUSE_DOWN, togglePlay);
+			
 			if (stage!=null) {
+				this.stage.removeEventListener(MouseEvent.MOUSE_DOWN, togglePlay);
 				this.stage.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeyPress);
 			}
 		}
