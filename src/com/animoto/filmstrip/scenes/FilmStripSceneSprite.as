@@ -9,13 +9,15 @@ package com.animoto.filmstrip.scenes
 	import flash.display.Sprite;
 	
 	/**
+	 * FilmStrip scene wrapper for use with a Sprite or MovieClip.
+	 * 
 	 * See FilmStripSceneBase for documentation.
 	 * 
 	 * @author moses gunesch
 	 */
 	public class FilmStripSceneSprite extends FilmStripScene
 	{
-		public var sprite: Sprite;
+		public var sprite: DisplayObjectContainer;
 		
 		override public function get actualContentWidth():int {
 			return sprite.width;
@@ -25,7 +27,7 @@ package com.animoto.filmstrip.scenes
 			return sprite.height;
 		}
 		
-		public function FilmStripSceneSprite(sprite:Sprite)
+		public function FilmStripSceneSprite(sprite:DisplayObjectContainer)
 		{
 			this.sprite = sprite;
 		}

@@ -20,8 +20,20 @@ package com.animoto.filmstrip
 	 */
 	public class FilmStrip extends EventDispatcher
 	{
+		// -== Global ==-
 
+		/**
+		 * When set false, known errors are traced instead of thrown,
+		 * allowing render processes to continue.
+		 */
 		public static var throwErrors: Boolean = true;
+		
+		/**
+		 * Global error function that traces or throws errors based on
+		 * the value of <code>throwErrors</code>.
+		 * 
+		 * @param message Error message.
+		 */
 		public static function error(message:String):void {
 			if (throwErrors)
 				throw new Error(message);
@@ -29,32 +41,126 @@ package com.animoto.filmstrip
 				trace ("* FilmStrip Error: " + message + " *");
 		}
 		
+		// -== Public Properties ==-
+		
+		/**
+		 * Stack of scenes to render each frame.
+		 */
 		public var scenes: Array = new Array();
+		
+		/**
+		 * Cache for the stack of bitmaps that is captured once to
+		 * generate a final frame image. 
+		 * 
+		 * Note: if you get weird artifacts, try adding this sprite 
+		 * to the displaylist during render.
+		 */
 		public var bitmapScene: FilmStripBitmapScene;
+		
+		/**
+		 * Frame output width (if unset the value of the first 
+		 * scene's actualContentWidth is looked up).
+		 */
 		public var width: Number = NaN;
+		
+		/**
+		 * Frame output height (if unset the value of the first 
+		 * scene's actualContentHeight is looked up).
+		 */
 		public var height: Number = NaN;
+		
+		/**
+		 * Sets the top edge of the capture area in the scene.
+		 */
 		public var top: Number = 0;
+		
+		/**
+		 * Sets the left edge of the capture area in the scene.
+		 */
 		public var left: Number = 0;
+		
+		/**
+		 * Determines the framerate of the final video.
+		 */
 		public var frameRate: int = 15;
+		
+		/**
+		 * When set, the render stops when this many seconds of
+		 * video have been generated -- or leave unset if you plan
+		 * to stop the render manually.
+		 */
 		public var durationInSeconds: Number = NaN;
+		
+		/**
+		 * Determines capture mode, which signficantly impacts what
+		 * processes take place during the render.
+		 * 
+		 * If you are just doing a simple frame-capture without motion-blur
+		 * or effects, be sure to set this to WHOLE_SCENE.
+		 */
 		public var captureMode:String = FilmStripCaptureMode.EACH_OBJECT;
+		
+		/**
+		 * Determines the motion-blur mode, which signficantly impacts what
+		 * processes take place during the render.
+		 * 
+		 * If you are just doing a simple frame-capture without motion-blur,
+		 * be sure to set this to NONE.
+		 */
 		public var blurMode:String = FilmStripBlurMode.MATTE_SUBFRAMES;
+		
+		/**
+		 * Whether frame bitmaps are transparent.
+		 */
 		public var transparent: Boolean = false;
+		
+		/**
+		 * If frame bitmaps are not transparent, determines background color.
+		 */
 		public var backgroundColor: Number = 0xFFFFFF;
-		public var bufferMilliseconds: int = 0;
+		
+		/**
+		 * Milliseconds of "breathing room" between each frame cycle.
+		 * 
+		 * Using 1 results is fast and usually allows the player to update visually.
+		 * Using 0 can at times be faster but will generally 'lock' the player and
+		 * can crash it. Set to higher values for slower but safer results or to 
+		 * run a render in the background of an otherwise active program. (FilmStrip
+		 * is NOT recommended for use in live apps as it is very processor-intensive.)
+		 */
+		public var bufferMilliseconds: int = 1;
+		
+		/**
+		 * Milliseconds of "breathing room" between each motion-blur subframe cycle.
+		 * 
+		 * Setting this to 1 or higher will lengthen renders but can signficantly 
+		 * lighten processor load. This setting also lets you watch the step-by-step
+		 * process of each blur as it is being created.
+		 */
 		public var subframeBufferMilliseconds: int = 0;
 		
+		/**
+		 * Whether this instance is actively processing a render.
+		 */
 		public function get rendering(): Boolean {
 			return _busy;
 		}
 		
+		/**
+		 * Time value of a frame based on frameRate, in milliseconds.
+		 */
 		public function get frameDuration(): int {
 			return int(1000 / frameRate);
 		}
 		
+		/**
+		 * Number of frames rendered since startRendering() was last called.
+		 */
 		public function get framesRendered(): int {
 			return _frameCount;
 		}
+		
+		// -== Private Properties ==-
 		
 		protected var _busy: Boolean = false;
 		protected var _startTime:Number;
@@ -63,6 +169,8 @@ package com.animoto.filmstrip
 		protected var _buffer:Timer = new Timer(1, 1);
 		protected var _clock: StopWatch = new StopWatch();
 		protected var _frameCount: int = 0;
+		
+		// -== Public Properties ==-
 		
 		/**
 		 * Constructor accepts the primary scene to render, you can add more afterwards using addScene.
@@ -86,6 +194,12 @@ package com.animoto.filmstrip
 			scenes.push( scene );
 		}
 		
+		/**
+		 * Gets a typed scene instance from the public scenes array.
+		 * 
+		 * @param index		Index in scenes array
+		 * @return 			An instance of a subclass of FilmStripScene such as FilmStripScenePV3D or FilmStripSceneSprite.
+		 */
 		public function getSceneAt(index:int):FilmStripScene {
 			return scenes[index] as FilmStripScene;
 		}
@@ -135,6 +249,12 @@ package com.animoto.filmstrip
 			doRenderNext();
 		}
 		
+		/**
+		 * Stops a render in progress.
+		 * 
+		 * (Note: needs improvement, to exit all processes in scene 
+		 * and blur controllers or wait for them to finish their cycle.)
+		 */
 		public function stopRendering():void {
 			if (!_busy) {
 				return;
@@ -153,6 +273,11 @@ package com.animoto.filmstrip
 			PulseControl.resume(); // unfreezes time for animation engines
 		}
 		
+		/**
+		 * Clears memory pointers so this instance can be deleted.
+		 * 
+		 * @param destroyScenes		Pass true to also destroy this instance's scenes.
+		 */
 		public function destroy(destroyScenes:Boolean=false):void {
 			stopRendering();
 			if (destroyScenes) {
@@ -208,8 +333,6 @@ package com.animoto.filmstrip
 		}
 
 		protected function frameComplete():void {
-			// TODO: bitmap scene may need to be attached to stage to fully render correctly
-			
 			// Render frame
 			var data:BitmapData;
 			data = new BitmapData(width, height, transparent, backgroundColor);

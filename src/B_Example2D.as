@@ -68,7 +68,6 @@ package {
 			filmStrip.backgroundColor = 0xf0ecaf;
 			filmStrip.durationInSeconds = 3;
 			filmStrip.frameRate = 20;
-			filmStrip.bufferMilliseconds = 1; // Important: read the notes on this property in NotatedExample before you change this!
 			
 			MotionBlurSettings.offset = 1; // this animation looks a little better blurring forward instead of trailing.
 			

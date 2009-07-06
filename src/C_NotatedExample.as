@@ -107,11 +107,18 @@ package {
 			// Advanced settings to explore.
 			
 			filmStrip.bufferMilliseconds = 1; // KNOW THIS!! FilmStrip is extremely processor intensive and can easily lock up your computer! 
-										// This setting gives it some breathing room between frames, which at least allows the split-screen
-										// view in this example to update once per frame. Crucially, you should never use FilmStrip in a 
-										// browser app and assume that other people's computers will be able to handle it, they will crash.
+										// The default setting of 1 gives some breathing room between frames, and allows the split-screen
+										// view in this example to update once per frame.  
+										//
+										// If your computer does okay with the default setting of 1, you can try 0 cautiously, but expect
+										// it to lock the player fully during render even if it processes a little faster in the end.
+										//
+										// You can also try setting this to a higher number to lighten processor load.
+										//
 										// In theory by tweaking these buffer settings it could be made safe for client-side usage, but
 										// for the most part FilmStrip is for rendering video on your local system, not for live apps!
+										// (That is, even if it runs on your computer you can't assume that other people's computers 
+										// will be able to handle it without crashing.)
 										
 			filmStrip.subframeBufferMilliseconds = 0; // Adds time between each blur subframe, for a slower but less processor-intensive run. 
 										// Try setting this value to 10 or 33 here to watch the blur process in full split-screen action!
@@ -147,7 +154,7 @@ package {
 			
 			// This is faster and often looks just fine, and you'll almost always want to use it
 			// if motion blur is turned off. When the mode is used with blur, you'll see a visual problem
-			// when objects overlap though -- they can appear smashed together. To see this issue in action,
+			// when objects overlap -- they can appear smashed together. To see this issue in action,
 			// change to the OverlappingDice example scene above and uncomment all the additional settings
 			// in the block below which exaggerate the blur. the blur and use the arrow keys during playback
 			// to step to the frames where the dice move past each other. Sometimes it isn't very noticeable

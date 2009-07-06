@@ -13,6 +13,8 @@ package com.animoto.filmstrip.scenes
 	import org.papervision3d.view.Viewport3D;
 	
 	/**
+	 * FilmStrip scene wrapper for use with a Papervision3D scene.
+	 * 
 	 * See FilmStripSceneBase for documentation.
 	 * 
 	 * @author moses gunesch
