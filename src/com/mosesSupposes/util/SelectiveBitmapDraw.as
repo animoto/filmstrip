@@ -108,14 +108,14 @@ package com.mosesSupposes.util
 			var numChildren:int = container.numChildren;
 			for (var i:int=0; i<numChildren; i++) {
 				node = container.getChildAt(i);
-				c = (node as DisplayObjectContainer)
+				c = (node as DisplayObjectContainer);
 				if (node.visible) {
 					if (locked[node]==null) {
 						toggled[node] = 1;
 						node.visible = false;
 						count ++;
 					}
-					else if (c!=null && c.numChildren>0) {
+					else if (locked[node]==false && c!=null && c.numChildren>0) {
 						count += toggleChildren(c);
 					}
 				}

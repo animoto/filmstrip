@@ -5,7 +5,6 @@ package {
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
 	import filmstripexamples.Dice;
-	import filmstripexamples.ExampleScene;
 	
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;

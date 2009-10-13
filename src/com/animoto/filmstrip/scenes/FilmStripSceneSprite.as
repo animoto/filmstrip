@@ -6,7 +6,6 @@ package com.animoto.filmstrip.scenes
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.Sprite;
 	
 	/**
 	 * FilmStrip scene wrapper for use with a Sprite or MovieClip.
@@ -32,15 +31,31 @@ package com.animoto.filmstrip.scenes
 			this.sprite = sprite;
 		}
 		
-		override public function getVisibleChildren():Array {
+		override public function getVisibleChildren(target:Object=null):Array {
+			if (target as DisplayObjectContainer) {
+				return inventory(target as DisplayObjectContainer, Number.NEGATIVE_INFINITY);
+			}
 			return inventory(sprite);
+		}
+		
+		override public function getDisplayChain(target:Object) : Array {
+			var a:Array = new Array();
+			while (target && target.hasOwnProperty("parent") && target.parent!=sprite) {
+				a.push(target);
+				target = target.parent;
+			}
+			return a;
+		}
+		
+		override public function getPerpectiveObject():Object {
+			return sprite;
 		}
 		
 		override public function getSelectiveDrawUtil(data:BitmapData):SelectiveDrawBase {
 			return new SelectiveBitmapDraw(data, sprite);
 		}
 		
-		protected function inventory(container:DisplayObjectContainer):Array {
+		protected function inventory(container:DisplayObjectContainer, currentDepth:Number=1):Array {
 			var a:Array = new Array();
 			var node:DisplayObject, c:DisplayObjectContainer;
 			var numChildren:int = container.numChildren;
@@ -48,9 +63,16 @@ package com.animoto.filmstrip.scenes
 				node = container.getChildAt(i);
 				c = (node as DisplayObjectContainer)
 				if (node.visible) {
-					a.push(node);
-					if (c!=null && c.numChildren>0) {
-						a = a.concat(inventory(c));
+					var isBranch:Boolean = (c && c.numChildren > 0 && super.canRecurse(c, currentDepth));
+					if (!isBranch) {
+						a.push(node);
+					}
+					else {
+						var l:int = a.length;
+						a = a.concat(inventory(c), currentDepth+1);
+						if (a.length == l) {
+							a.push(node); // turned out to be a leaf
+						}
 					}
 				}
 			}

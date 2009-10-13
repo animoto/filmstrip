@@ -80,6 +80,11 @@ package com.animoto.filmstrip
 		public var left: Number = 0;
 		
 		/**
+		 * Scales the frame image as it is captured.
+		 */
+		public var scale: Number = 1;
+		
+		/**
 		 * Determines the framerate of the final video.
 		 */
 		public var frameRate: int = 15;
@@ -265,8 +270,8 @@ package com.animoto.filmstrip
 			_clock.pause();
 			try { (scenes[_index] as FilmStripScene).controller.stopRendering(); } catch (e:Error){}
 			_index = 0;
-			var stats: String = "Time elapsed: "+_clock.seconds+" seconds "+
-								 "for "+(_frameCount * frameRate / 1000).toFixed(1)+" seconds of video. " +
+			var stats: String = "Time elapsed: "+_clock.seconds.toFixed(1)+" seconds "+
+								 "for "+(_frameCount * frameRate / 1000).toFixed(1)+" seconds of " + frameRate + "fps video. " +
 								"("+_frameCount+" frames @ " + (_clock.seconds/_frameCount).toFixed(1)+" seconds/frame)";
 			trace(stats);
 			dispatchEvent( new FilmStripEvent(FilmStripEvent.RENDER_STOPPED, null, stats) );

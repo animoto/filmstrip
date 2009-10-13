@@ -26,6 +26,7 @@ package com.animoto.filmstrip.managers
 	{
 		public var container:Sprite;
 		public var target: Object;
+		public var whitelist: Array;
 		public var deltaMgr: DeltaManager;
 		public var subframes: int;
 		
@@ -37,6 +38,7 @@ package com.animoto.filmstrip.managers
 		protected var primaryOnly: Boolean = false;
 		protected var wholeScene: Boolean = false;
 		protected var clipMatrix: Matrix;
+		protected var busy: Boolean = false;
 		
 		public function MotionBlurController(controller:FilmStripSceneController, target:Object, wholeScene:Boolean)
 		{
@@ -52,22 +54,36 @@ package com.animoto.filmstrip.managers
 			if (controller.filmStrip.blurMode == FilmStripBlurMode.NONE) {
 				primaryOnly = true;
 			}
-			clipMatrix = new Matrix();
-			clipMatrix.translate(-controller.filmStrip.left, -controller.filmStrip.top);
+			else if (controller.scene.blurExceptions.indexOf(target) > -1) {
+				primaryOnly = true;
+			}
 			
 			// Correct static settings.
 			strength = Math.max(0, strength);
 			threshold = Math.max(1, threshold);
 			maxFrames = Math.max(1, maxFrames);
-			subframeDuration = Math.max(1, subframeDuration);
+			subframeDuration = Math.max(0.01, subframeDuration);
 			peakAlpha = Math.min(1, Math.max(0, peakAlpha));
 			offset = (offset > 0 ? 1 : -1); // For now.
 		}
 		
 		public function render():void {
+			busy = true;
 			// subframes are precalculated by controller.
 			index = 0;
 			newContainer();
+			
+			if (!whitelist) {
+				// Target whitelisting improves performance by only animating the targets being rendered.
+				// The whitelist is global, assuming there's not going to be multiple filmstrips operating at once on the same object.
+				whitelist = controller.scene.getDisplayChain(target);
+				if (!whitelist) { // fallback
+					whitelist = [ target ];
+				}
+			}
+			PulseControl.whitelist(whitelist);
+			PulseControl.whitelist(controller.scene.getPerpectiveObject());
+			
 			PulseControl.setTime(controller.currentTime);
 			capturePrimaryFrame();
 			if (primaryOnly || subframes==0) {
@@ -94,6 +110,24 @@ package com.animoto.filmstrip.managers
 			}
 			
 			// Update animation and capture subframe.
+			if (cameraBlurPercent!=1) { // otherwise, full camera blur so we leave the camera in the whitelist.
+				if (cameraBlurPercent==0) { // no camera blur - unwhitelist for all subframes.
+					PulseControl.unwhitelist(controller.scene.getPerpectiveObject());
+				}
+				else { // adjusted camera blur
+					var camTime:int = Math.round(controller.currentTime + (subframeDuration * cameraBlurPercent * index * offset));
+					if (camTime==time) { // adjustment ended in full camera blur for this subframe anyway
+						PulseControl.whitelist(controller.scene.getPerpectiveObject());
+					}
+					else { // value is adjusted - animate camera separately then restore whitelist (slower)
+						PulseControl.unwhitelist(whitelist);
+						PulseControl.whitelist(controller.scene.getPerpectiveObject());
+						PulseControl.setTime(camTime);
+						PulseControl.unwhitelist(controller.scene.getPerpectiveObject());
+						PulseControl.whitelist(whitelist);
+					}
+				}
+			}
 			PulseControl.setTime(time);
 			captureSubframe();
 			controller.subframeComplete(this, index, false);
@@ -108,8 +142,13 @@ package com.animoto.filmstrip.managers
 		}
 		
 		public function destroy():void {
+			if (busy && whitelist) {
+				PulseControl.unwhitelist(whitelist);
+			}
+			busy = false;
 			controller = null;
 			target = null;
+			whitelist = null;
 			deltaMgr = null;
 			if (buffer!=null) {
 				buffer.reset();
@@ -117,7 +156,8 @@ package com.animoto.filmstrip.managers
 				buffer = null;
 			}
 			if (drawUtil!=null) {
-				drawUtil.manualPostDraw(false); // safety, releases references without rerendering 3d scene
+				drawUtil.manualPostDraw(false); // safety, restores scene
+				drawUtil.destroy();
 				drawUtil = null;
 			}
 		}
@@ -141,6 +181,15 @@ package com.animoto.filmstrip.managers
 				if (!redrew)
 					controller.scene.redrawScene();
 			}
+			if (!clipMatrix) {
+				clipMatrix = new Matrix();
+				clipMatrix.translate(-controller.filmStrip.left, -controller.filmStrip.top);
+				var offset:Point = drawUtil.getOffset();
+				if (offset) {
+					clipMatrix.translate(offset.x, offset.y);
+				}
+				clipMatrix.scale(controller.filmStrip.scale, controller.filmStrip.scale);
+			}
 			drawUtil.bitmapData.draw(drawUtil.drawSource, clipMatrix);
 			var bitmap:Bitmap = new Bitmap(drawUtil.bitmapData);
 			var filters:Array = controller.scene.getFilters(target, false);
@@ -151,7 +200,7 @@ package com.animoto.filmstrip.managers
 		}
 		
 		protected function captureSubframe():void {
-			controller.scene.redrawScene();
+			drawUtil.updateBeforeDraw();
 			
 			var ct:ColorTransform = new ColorTransform(1, 1, 1, currentAlpha());
 			var filters:Array = controller.scene.getFilters(target, true);
@@ -175,7 +224,11 @@ package com.animoto.filmstrip.managers
 		}
 		
 		protected function complete():void {
-			drawUtil.manualPostDraw(); // Passing false to avoid rerendering the scene, which isn't necessary here
+			if (whitelist) {
+				PulseControl.unwhitelist(whitelist);
+			}
+			drawUtil.manualPostDraw(false); // Restores scene
+			busy = false;
 			controller.subframeComplete(this, index, true);
 		}
 		

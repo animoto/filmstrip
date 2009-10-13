@@ -25,6 +25,28 @@ package com.animoto.filmstrip.scenes
 	 */
 	public class FilmStripScene
 	{
+		/**
+		 * Setting this to 1 for example means that no nested objects should
+		 * be considered, just children of the scene itself. 
+		 */
+		public var recursionLimit: Number = Number.POSITIVE_INFINITY;
+		
+		/**
+		 * Specific objects to treat as leaf nodes to blur, without doing an
+		 * inventory of child objects.
+		 */
+		public var recursionExceptions: Array = new Array();
+		
+		/**
+		 * Specific types that should always be treated as leaf nodes to blur.
+		 * For example DAE models are normally best treated as a single unit
+		 * so DAE is added to this array by FilmStripScenePV3D.
+		 */
+		public var recursionExceptionClasses: Array = new Array();
+		
+		public var renderExceptions: Array = new Array();
+		public var blurExceptions: Array = new Array();
+		
 		protected var _controller: FilmStripSceneController;
 		protected var _filters: Dictionary = new Dictionary();
 		protected var _subframeFilters: Dictionary = new Dictionary();
@@ -53,6 +75,16 @@ package com.animoto.filmstrip.scenes
 		public function get actualContentHeight():int {
 			// override this method
 			return 0;
+		}
+		
+		/**
+		 * Tells MotionBlurController whether renderable children are
+		 * transformable, such as Sprites, or never transformed and
+		 * rendered from a single camera perpsective, such as PV3D 
+		 * ViewportLayers.
+		 */
+		public function get contentsHaveTransforms():Boolean {
+			return true;
 		}
 		
 		/**
@@ -95,8 +127,25 @@ package com.animoto.filmstrip.scenes
 		 * All children visible in the scene when called,
 		 * which should be depth-sorted if it's a 3D scene.
 		 */
-		public function getVisibleChildren():Array {
+		public function getVisibleChildren(target:Object=null):Array {
 			// override this method
+			return null;
+		}
+		
+		/**
+		 * The target and all its parents up to but not including 
+		 * the scene top container.
+		 */
+		public function getDisplayChain(target:Object):Array {
+			// override this method
+			return null;
+		}
+		
+		/**
+		 * The 2D scene container or 3D camera used in 
+		 * MotionBlurSettings.cameraBlurPercent.
+		 */
+		public function getPerpectiveObject():Object {
 			return null;
 		}
 		
@@ -126,6 +175,26 @@ package com.animoto.filmstrip.scenes
 			}
 			_filters = null;
 			_subframeFilters = null;
+		}
+		
+		
+		protected function canRecurse(node:Object, currentDepth:Number):Boolean {
+			if (currentDepth >= recursionLimit) {
+				return false;
+			}
+			if (recursionExceptionClasses && recursionExceptionClasses.length > 0) {
+				for each (var type:Class in recursionExceptionClasses) {
+					if (node is type) {
+						return false;
+					}
+				}
+			}
+			if (recursionExceptions && recursionExceptions.length > 0) {
+				if (recursionExceptions.indexOf(node) > -1) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 }

@@ -25,9 +25,10 @@ package com.mosesSupposes.util
 	import flash.display.IBitmapDrawable;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
-	
+
 	/**
 	 * Base class for SelectiveBitmapDraw utils.
 	 * 
@@ -39,6 +40,7 @@ package com.mosesSupposes.util
 		public var bitmapData:BitmapData;
 		public var drawSource:IBitmapDrawable;
 		
+		protected var offset:Point = new Point();
 		protected var locked:Dictionary = new Dictionary(true);
 		protected var toggled:Dictionary = new Dictionary(true);
 		
@@ -65,13 +67,31 @@ package com.mosesSupposes.util
 			restore();
 		}
 		
+		public function updateBeforeDraw():void {
+			
+		}
+		
+		public function getOffset():Point {
+			return offset;
+		}
+		
+		public function destroy():void {
+			bitmapData = null;
+			drawSource = null;
+			locked = null;
+			toggled = null;
+		}
+		
 		protected function setParents(selectiveChildren:Array, topNode:Object):void {
+			var leaf:Boolean;
 			for each (var node:Object in selectiveChildren) {
+				leaf = true;
 				do {
 					if (locked[node]==null) {
-						locked[node] = 1;
+						locked[node] = leaf;
 					}
 					node = (node.hasOwnProperty("parent") ? node.parent : null);
+					leaf = false;
 				}
 				while (node!=null && node!=topNode);
 			}

@@ -106,7 +106,8 @@ package com.animoto.filmstrip.managers
 			}
 			
 			// In many cases this step is really only needed once, but it keeps us synced as objects enter and leave the scene.
-			makeBlurControllers();
+			var children:Array = scene.getVisibleChildren();
+			makeBlurControllers(children);
 			
 			if (motionBlurs.length == 0) {
 				trace("scene empty in this frame.");
@@ -114,7 +115,7 @@ package com.animoto.filmstrip.managers
 				return;
 			}
 			if ( MotionBlurSettings.useFixedFrameCount == false ) {
-				var totalSubframes:int = precalcSubframes();
+				var totalSubframes:int = precalcSubframes(children);
 				if (totalSubframes == 0 && hasFilters == false) {
 					trace("Reverted to single capture - no blur in this frame.");
 					singleCapture(0);
@@ -130,10 +131,9 @@ package com.animoto.filmstrip.managers
 			renderNextBlur();
 		}
 		
-		protected function makeBlurControllers():void {
+		protected function makeBlurControllers(children:Array):void {
 			motionBlurs = new Array();
 			var blur: MotionBlurController;
-			var children:Array = scene.getVisibleChildren();
 			hasFilters = false;
 			
 			for each (var child:Object in children) {
@@ -153,24 +153,30 @@ package com.animoto.filmstrip.managers
 			// Clean up retainer
 			for each (blur in motionBlurRetainer) {
 				if (motionBlurs.indexOf(blur)==-1) {
-					motionBlurRetainer[blur.target].destroy();
+					try {
+						motionBlurRetainer[blur.target].destroy();
+					} catch(e:Error){}
 					delete motionBlurRetainer[blur.target];
 				}
 			}
 		}
 		
-		protected function precalcSubframes():int {
+		protected function precalcSubframes(children:Array):int {
 			var blur: MotionBlurController;
 			var totalSubframes:int = 0;
 			var frameRate:int = filmStrip.frameRate;
 			
 			// animate to previous or next frame time then back to currentTime to get deltas.
 			// doing this centrally lets us check whether it's necessary to capture objects separately.
+			if (!PulseControl.whitelistIsClear()) {
+				PulseControl.whitelist(children);
+			}
 			PulseControl.setTime( Math.max(0, currentTime + (filmStrip.frameDuration * MotionBlurSettings.offset)) );
 			for each (blur in motionBlurs) {
 				blur.deltaMgr.recordStartValues();
 			}
 			PulseControl.setTime(currentTime);
+			PulseControl.unwhitelist(children);
 			var delta:Number;
 			for each (blur in motionBlurs) {
 				delta = blur.deltaMgr.getCompoundDelta();

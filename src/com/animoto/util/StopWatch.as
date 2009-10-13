@@ -33,20 +33,20 @@ package com.animoto.util
 	 */
 	public class StopWatch
 	{
-		public function get milliseconds():int {
+		public function get milliseconds():Number {
 			if (_running) {
 				return _recordedTime + (getTimer() - _lastStartTime);
 			}
 			return _recordedTime;
 		}
-		public function set milliseconds(time:int):void {
+		public function set milliseconds(time:Number):void {
 			_recordedTime = time;
 		}
 		
-		public function get seconds():int {
+		public function get seconds():Number {
 			return milliseconds / 1000;
 		}
-		public function set seconds(time:int):void {
+		public function set seconds(time:Number):void {
 			_recordedTime = seconds * 1000;
 		}
 		
@@ -54,8 +54,8 @@ package com.animoto.util
 			return _running;
 		}
 		
-		protected var _lastStartTime:int;
-		protected var _recordedTime:int = 0;
+		protected var _lastStartTime:Number;
+		protected var _recordedTime:Number = 0;
 		protected var _running:Boolean = false;
 		
 		public function StopWatch() {

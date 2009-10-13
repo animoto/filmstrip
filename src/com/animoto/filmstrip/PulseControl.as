@@ -5,6 +5,7 @@ package com.animoto.filmstrip
 	import flash.display.Shape;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.utils.Dictionary;
 	
 	/**
 	 * External time controller that can be easily patched into 
@@ -26,7 +27,7 @@ package com.animoto.filmstrip
 	public class PulseControl
 	{
 		// Replace all getTimer() (or new Date.getTime()) calls in active code with calls to this method.
-		public static function getCurrentTime():int {
+		public static function getCurrentTime():Number {
 			return timer.milliseconds;
 		}
 		
@@ -72,11 +73,11 @@ package com.animoto.filmstrip
 			frozen = true;
 		}
 		
-		public static function advanceTime(milliseconds:int):void {
+		public static function advanceTime(milliseconds:Number):void {
 			setTime(timer.milliseconds + milliseconds);
 		}
 		
-		public static function setTime(milliseconds:int):void {
+		public static function setTime(milliseconds:Number):void {
 			if (listening && frozen) {
 				timer.milliseconds = milliseconds;
 				dispatchEnterFrame();
@@ -91,6 +92,49 @@ package com.animoto.filmstrip
 			}
 		}
 		
+		// -== Animation target whitelisting ==-
+		
+		// Returns true if no targets have been whitelisted.
+		public static function isWhitelisted(target:Object):Boolean
+		{
+			return (whitelistIsClear() || wlist[ target ] == 1);
+		}
+		
+		public static function whitelistIsClear():Boolean {
+			return (wlistCount == 0);
+		}
+		
+		public static function whitelist(target:Object):void
+		{
+			if (target is Array) {
+				for each (var targ:Object in target) {
+					whitelist(targ);
+				}
+				return;
+			}
+			if (wlist[ target ] == null) {
+				wlist[ target ] = 1;
+				wlistCount ++;
+			}
+		}
+		
+		public static function unwhitelist(target:Object):void
+		{
+			if (whitelistIsClear()) {
+				return;
+			}
+			if (target is Array) {
+				for each (var targ:Object in target) {
+					unwhitelist(targ);
+				}
+				return;
+			}
+			if (wlist[ target ] != null) {
+				delete wlist[ target ];
+				wlistCount --;
+			}
+		}
+		
 		// -== Private ==-
 		
 		private static var timer: StopWatch = new StopWatch();
@@ -99,6 +143,8 @@ package com.animoto.filmstrip
 		private static var frozen: Boolean = false;
 		private static var engineDispatcher: EventDispatcher = new EventDispatcher();
 		private static var liveDispatcher: EventDispatcher = new EventDispatcher();
+		private static var wlist : Dictionary = new Dictionary(false);
+		private static var wlistCount: int = 0;
 		
 		private static function onAdd():void {
 			listening = true;

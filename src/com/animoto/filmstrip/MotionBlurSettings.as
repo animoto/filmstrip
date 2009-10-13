@@ -17,6 +17,12 @@ package com.animoto.filmstrip
 	 */
 	public class MotionBlurSettings
 	{
+		public static const CAMERA_BLUR_NONE:Number = 0;
+		
+		public static const CAMERA_BLUR_NATURAL:Number = 0.5;
+		
+		public static const CAMERA_BLUR_ABSOLUTE:Number = 1;
+		
 		// -== Global Blur Settings. ==-
 		
 		/**
@@ -33,7 +39,7 @@ package com.animoto.filmstrip
 		 * Milliseconds animation is changed each frame (1 or higher, higher numbers
 		 * have the effect of spreading subframes apart).
 		 */
-		public static var subframeDuration:int = 1;
+		public static var subframeDuration:Number = 1;
 		
 		/**
 		 * Use -1 or 1 for either a trailing blur or "forward" blur, respectively.
@@ -87,6 +93,31 @@ package com.animoto.filmstrip
 		 * Try setting this value if the blur seems too weak or strong during rotations.
 		 */
 		public static var rotationMultiplier:Number = 1;
+		
+		/**
+		 * (Advanced) A 0-1 multiplier defining how much camera motion is factored into blur. 
+		 * 
+		 * Both CAMERA_BLUR_NONE and CAMERA_BLUR_ABSOLUTE are faster than CAMERA_BLUR_NATURAL
+		 * when the camera is animated. (For 2D scenes the scene sprite is treated as the camera.)
+		 * <br>
+		 * <ul>
+		 * <li>When both the camera and scene contents are animated, CAMERA_BLUR_NATURAL dampens 
+		 * camera animation which blends with object motion nicely. This constant is set at 0.5
+		 * but you can also set cameraBlurPercent to any number between 0 and 1 to fine-tune
+		 * the balance, for example a value of 0.25 would allow less camera blur.</li>
+		 * 
+		 * <li>CAMERA_BLUR_ABSOLUTE leaves all animation intact which can create strong blurs 
+		 * based solely on fast camera movement. In this setting if an object is moving to the 
+		 * right and the camera pans faster to the left, the object will appear to blur the
+		 * wrong direction, but it can also lend to some interesting effects. (Setting this 
+		 * number higher than 1 will exaggerate camera blur.)</li>
+		 * 
+		 * <li>CAMERA_BLUR_NONE retains the full motion blur of scene objects without factoring
+		 * any camera motion into subframes. This can look less natural for fast camera moves,
+		 * but may look fine and render faster with slow camera animations.</li>
+		 * </ul>
+		 */
+		public static var cameraBlurPercent:Number = CAMERA_BLUR_NATURAL;
 		
 		/**
 		 * Estimates subframe count based on frameRate, delta, and settings.

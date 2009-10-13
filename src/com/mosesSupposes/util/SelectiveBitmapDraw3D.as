@@ -25,6 +25,7 @@ package com.mosesSupposes.util
 	import flash.display.IBitmapDrawable;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
 	import org.papervision3d.core.proto.CameraObject3D;
@@ -33,7 +34,8 @@ package com.mosesSupposes.util
 	import org.papervision3d.objects.DisplayObject3D;
 	import org.papervision3d.render.BasicRenderEngine;
 	import org.papervision3d.view.Viewport3D;
-	
+	import org.papervision3d.view.layer.ViewportLayer;
+
 	/**
 	 * Allows the capture of selective children within a PaperVision3D scene.
 	 * 
@@ -46,6 +48,12 @@ package com.mosesSupposes.util
 	 */
 	public class SelectiveBitmapDraw3D extends SelectiveDrawBase
 	{
+		/**
+		 * When true and a single target is drawn, a ViewportLayer for the object
+		 * is automated as the drawSource.
+		 */
+		public var useViewportLayerCapture:Boolean = false;
+		
 		public var topContainer:DisplayObjectContainer3D;
 		public var scene:SceneObject3D;
 		public var camera:CameraObject3D;
@@ -61,11 +69,9 @@ package com.mosesSupposes.util
 		 * @param camera					3D camera.
 		 * @param viewport					3D viewport, and default <code>drawSource</code>.
 		 * @param renderer					3D render engine.
-		 * @param viewportLayersToRender	Pass a value here to use the <code>renderLayers</code> method of the renderer
-		 * 									if it's a BasicRenderEngine. 
 		 * 
 		 */
-		public function SelectiveBitmapDraw3D(bitmapData:BitmapData, scene:SceneObject3D, camera:CameraObject3D, viewport:Viewport3D, renderer:BasicRenderEngine, viewportLayersToRender:Array=null)
+		public function SelectiveBitmapDraw3D(bitmapData:BitmapData, scene:SceneObject3D, camera:CameraObject3D, viewport:Viewport3D, renderer:BasicRenderEngine)
 		{
 			super(bitmapData, viewport as IBitmapDrawable);
 			topContainer = scene;
@@ -73,7 +79,6 @@ package com.mosesSupposes.util
 			this.camera = camera;
 			this.viewport = viewport;
 			this.renderer = renderer;
-			this.viewportLayersToRender = viewportLayersToRender;
 		}
 		
 		/**
@@ -91,7 +96,23 @@ package com.mosesSupposes.util
 		 * @return 
 		 */
 		override public function draw(selectiveChildren:Array, matrix:Matrix=null, colorTransform:ColorTransform=null, blendMode:String=null, clipRect:Rectangle=null, smoothing:Boolean=false):BitmapData {
+			if (useViewportLayerCapture && selectiveChildren.length==1) {
+				manualPreDraw(selectiveChildren);
+				bitmapData.draw(drawSource, matrix, colorTransform, blendMode, clipRect, smoothing);
+				return bitmapData;
+			}
+			
 			return super.draw(selectiveChildren, matrix, colorTransform, blendMode, clipRect, smoothing);
+		}
+		
+		override public function destroy() : void {
+			super.destroy();
+			topContainer = null;
+			viewportLayersToRender = null;
+			scene = null;
+			camera = null;
+			viewport = null;
+			renderer = null;
 		}
 		
 		// -== Advanced Methods ==-
@@ -109,10 +130,32 @@ package com.mosesSupposes.util
 		 * 								to call manualPostDraw().
 		 */
 		override public function manualPreDraw(selectiveChildren:Array):Boolean {
+			if (useViewportLayerCapture && selectiveChildren.length==1) {
+				var obj:Object = selectiveChildren[0];
+				
+				if ( singleLayerUnset(obj) ) {
+					
+					var layer:ViewportLayer;
+					
+					if (obj is ViewportLayer) {
+						layer = obj as ViewportLayer;
+					}
+					else if (obj is DisplayObject3D) {
+						layer = viewport.getChildLayer(obj as DisplayObject3D);
+					}
+					
+					drawSource = layer;
+					viewportLayersToRender = [ layer ]; 
+				}
+				updateBeforeDraw();
+				return true;
+			}
+			
+			// Multiple DO3Ds: toggle visibility of other objects in scene
 			super.setParents(selectiveChildren, topContainer);
 			var r:Boolean = (toggleChildren(topContainer) > 0);
 			if (r) {
-				doRender();
+				updateBeforeDraw();
 			}
 			return (r);
 		}
@@ -122,8 +165,29 @@ package com.mosesSupposes.util
 		 */
 		override public function manualPostDraw(redrawAfter:Boolean=true):void {
 			super.manualPostDraw();
+			viewportLayersToRender = null;
 			if (redrawAfter)
-				doRender();
+				updateBeforeDraw();
+		}
+		
+		/**
+		 * (Advanced) Rerenders 3D scene or viewport layers.
+		 */
+		override public function updateBeforeDraw():void {
+			if (viewportLayersToRender!=null) {
+				renderer.renderLayers(scene, camera, viewport, viewportLayersToRender);
+			}
+			else {
+				renderer.renderScene(scene, camera, viewport);
+			}
+		}
+		
+		override public function getOffset():Point {
+			if (viewportLayersToRender) {
+				offset.x = viewport.containerSprite.x;
+				offset.y = viewport.containerSprite.y;
+			}
+			return offset;
 		}
 		
 		// -== Private Methods ==-
@@ -144,7 +208,7 @@ package com.mosesSupposes.util
 						node.visible = false;
 						count++;
 					}
-					else if (node.numChildren>0) {
+					else if (locked[node]==false && node.numChildren>0) {
 						count += toggleChildren(node);
 					}
 				}
@@ -154,16 +218,14 @@ package com.mosesSupposes.util
 		
 		/**
 		 * @private
-		 * 
-		 * Renders 3D scene.
 		 */
-		protected function doRender():void {
-			if (viewportLayersToRender!=null) {
-				renderer.renderLayers(scene, camera, viewport, viewportLayersToRender);
+		protected function singleLayerUnset(obj:Object):Boolean {
+			if (!viewportLayersToRender
+				|| viewportLayersToRender.length > 1
+				|| viewportLayersToRender[0].displayObject3D != obj ) {
+				return true;
 			}
-			else {
-				renderer.renderScene(scene, camera, viewport);
-			}
+			return false;
 		}
 	}
 }

@@ -15,12 +15,14 @@ package filmstripexamples
 	import org.papervision3d.materials.BitmapMaterial;
 	import org.papervision3d.materials.MovieMaterial;
 	import org.papervision3d.materials.utils.MaterialsList;
+	import org.papervision3d.objects.DisplayObject3D;
 	import org.papervision3d.objects.primitives.Cube;
 	import org.papervision3d.objects.primitives.Plane;
 	import org.papervision3d.render.BasicRenderEngine;
 	import org.papervision3d.scenes.Scene3D;
 	import org.papervision3d.view.Viewport3D;
-	
+	import org.papervision3d.view.layer.util.ViewportLayerSortMode;
+
 	public class Dice extends ExampleScene
 	{
 		public static var greenMM: MovieMaterial;
@@ -111,9 +113,10 @@ package filmstripexamples
 			
 			var soften:BlurFilter = new BlurFilter(1, 1, 1);
 			
-			viewport.getChildLayer(cube1);
-			viewport.getChildLayer(cube2);
-//			viewport.getChildLayer(floor);
+			viewport.containerSprite.sortMode = ViewportLayerSortMode.INDEX_SORT;
+			viewport.getChildLayer(cube1).layerIndex = 2;
+			viewport.getChildLayer(cube2).layerIndex = 3;
+			viewport.getChildLayer(floor).layerIndex = 1;
 			
 			scene.addChild(cube1);
 			scene.addChild(cube2);
