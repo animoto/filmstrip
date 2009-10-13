@@ -13,6 +13,7 @@ package filmstripexamples
 		public var filter2:BitmapFilter;
 		public var filter3:BitmapFilter;
 		public var filter4:BitmapFilter;
+		public var doFastCameraMove:Boolean = false;
 		
 		public function OverlappingDice()
 		{
@@ -21,9 +22,6 @@ package filmstripexamples
 		
 		override public function setupScene(event:Event=null):void {
 			super.setupScene();
-			camera.zoom = 2;
-			camera.rotationX = 25;
-			camera.rotationY = -45;
 			cube2.x = 1100;
 			cube1.rotationZ += 35;
 		}
@@ -49,8 +47,11 @@ package filmstripexamples
 			Tweener.addTween(cube2, {rotationY:90, rotationZ:-90, y:cubeSize/2, time:2, transition:"easeoutbounce"});
 			Tweener.addTween(filter4, {distance:0, time:2, transition:"easeoutbounce"});
 			Tweener.addTween(cube2, {x:-650, time:.9, transition:"easeoutquad"});
-			Tweener.addTween(cube2, {x:-30, time:.5, /* rotationY:180,  */delay:.6, transition:"easeoutcirc"});
+			Tweener.addTween(cube2, {x:-30, time:.5, delay:.6, transition:"easeoutcirc"});
 			
+			camera.zoom = 2;
+			camera.rotationX = 25;
+			camera.rotationY = -45;
 			Tweener.addTween(camera, {x:-320, y:350, z:-800, rotationY:25, rotationX:15, zoom:1, time:2, transition:"easeinoutsine"});
 		}
 	}

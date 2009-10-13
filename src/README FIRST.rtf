@@ -1,4 +1,4 @@
-{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf430
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf110
 {\fonttbl\f0\fswiss\fcharset0 ArialMT;\f1\fswiss\fcharset0 Arial-Black;\f2\fmodern\fcharset0 Courier;
 }
 {\colortbl;\red255\green255\blue255;\red64\green64\blue64;\red128\green0\blue128;}
@@ -18,7 +18,7 @@
 \
 \pard\pardeftab720\ql\qnatural
 
-\i\b \cf3 FilmStrip work you first need to add a patch to your tween library.
+\i\b \cf3 For FilmStrip work you first need to add a patch to your tween library.
 \i0\b0 \cf0  We did this so that you could use your favorite animation system with FilmStrip instead of forcing some custom one on you. Don't worry, it's easy and only takes about 5 minutes!\
 \
 \
@@ -66,15 +66,28 @@ Remember: FilmStrip is made to work with just about \ul any tween library\ulnone
 KNOWN LIMITATIONS:\
 \
 \pard\pardeftab720\li360\ql\qnatural
-\cf0 * This early version of FilmStrip does not calculate the animations of a scene's camera3D or each object's hierarchy of parent objects into motion-blurs.\
-\
-* This early version of FilmStrip ships with basic Sprite and Papervision3D support. It is also extensible for Sandy, Away or other environments, so please express your interest in collaborating on those projects.\
-\
-* This early version of FilmStrip doesn't work with DAE models -- it seems to animate the triangle mesh and not the skin, please help us fix this issue!\
-\
+\cf0 * This early version of FilmStrip ships with basic Sprite and Papervision3D support. It is also extensible for Sandy, Away or other environments, so please express your interest in collaborating on those projects.\
 \
 \pard\pardeftab720\ql\qnatural
-\cf0 PROCESSING TO VIDEO:\
+\cf0 ABOUT COMPOUND BLURS\
+\
+\pard\pardeftab720\li360\ql\qnatural
+\cf0 FilmStrip now presents simple ways of dealing with the potential mess of complexities involved in things like rendering nested 3D object trees and controlling the amount of influence camera motion has on the results. These situations are both cases of compound blur -- for example, a parent DO3D might contain two fast-spinning cubes and itself be moving fast enough to blur both children.\
+\
+* FilmStrip currently makes the simple rule that leaf nodes are rendered and parent nodes are not. This means that if the two cubes are parented to a sphere object, you shouldn't directly add them as children of a sphere, instead you should create a separate transparent container and add the sphere and the cubes as children. You can then animate the container object and its motion will be compounded with the motion of the children during render.\
+\
+* To affect the ratio of compound blur that can result from fast camera movement, change 
+\f2\fs24 MotionBlurSettings.cameraBlurPercent
+\f0\fs28  to one of the constants 
+\f2\fs24 CAMERA_BLUR_NONE, CAMERA_BLUR_NATURAL, CAMERA_BLUR_ABSOLUTE,
+\f0\fs28  or any other 0-1 number. The default setting is 
+\f2\fs24 CAMERA_BLUR_NATURAL
+\f0\fs28  (0.5) which is a little slower when the camera is animated but results in a nice blend of camera and object motion for more filmic results.\
+\
+Note that both of these rely on implenting animation whitelisting to the engine patches which is a small change from the first version released. See the separate \cf3 README.rtf\cf0  file in the \cf3 pulse_patch\cf0  subdirectory in this project for instructions.\
+\pard\pardeftab720\ql\qnatural
+\cf0 \
+PROCESSING TO VIDEO:\
 \pard\pardeftab720\li360\ql\qnatural
 \cf0 \
 * We currently have:\

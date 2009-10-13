@@ -1,4 +1,4 @@
-package
+package tests
 {
 	import com.mosesSupposes.util.SelectiveBitmapDraw3D;
 	

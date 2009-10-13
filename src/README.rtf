@@ -1,10 +1,11 @@
-{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf430
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf110
 {\fonttbl\f0\fswiss\fcharset0 ArialMT;\f1\fswiss\fcharset0 Arial-Black;\f2\fmodern\fcharset0 Courier;
-\f3\fmodern\fcharset0 Courier-Bold;\f4\fnil\fcharset0 Monaco;}
+\f3\fmodern\fcharset0 Courier-Bold;\f4\fnil\fcharset0 LucidaGrande;\f5\fnil\fcharset0 Monaco;
+}
 {\colortbl;\red255\green255\blue255;\red63\green95\blue191;\red255\green0\blue0;\red153\green0\blue204;
 \red0\green51\blue255;\red51\green153\blue102;\red102\green153\blue204;\red153\green0\blue0;\red0\green153\blue0;
 }
-\margl1440\margr1440\vieww19380\viewh20960\viewkind0
+\margl1440\margr1440\vieww15920\viewh16380\viewkind0
 \deftab720
 \pard\pardeftab720\ql\qnatural
 
@@ -30,11 +31,17 @@ HOW TO PATCH YOUR TWEEN ENGINE: \
 \f3\b Engine
 \f2\b0 Listener(handler)
 \f0\fs28 \cf0 .\
-\uc0\u8232 * Replace getTimer() or other time lookups with 
+
+\f4 \uc0\u8232 
+\f0 * Replace getTimer() or other time lookups with 
 \f2\fs26 \cf2 PulseControl.getCurrentTime()
 \f0\fs28 \cf0 .\
 \
-* That's it!\
+* Add a caveat so that individual tweens are only updated when 
+\f2\fs26 \cf2 PulseControl.isWhitelisted(target)
+\f0\fs28 \cf0  returns true, passing the tween's target. (This step is optional, but makes processing more efficient and enables use of the 
+\f2 cameraBlurPercent
+\f0  setting.)\
 \pard\pardeftab720\ql\qnatural
 \cf0 \
 Using these techniques you should be able to patch nearly any tween engine. It's best that you learn how to do the patch once now on your favorite engine. That way you stay in control, and can keep your patch up to date most easily. Sorry for this extra step! We don't want to get into redistributing 3rd-party tween engines though, and in the end this open system lets you use FilmStrip with your favorite tween engine.  
@@ -134,7 +141,7 @@ MEMBER ACCESS: PulseControl's methods and properties static, but it does not thr
 \
 PHYSICS ENGINES: PulseControl will work with most tween engines but probably won't with physics engines in this version. JigLib for example uses unidirectional time instead of random-access time (that is, it steps time forward each tick but cannot step backward) so it is not currently compatible with FilmStrip.\
 \
-METHOD BEHIND THE MADNESS: If this patch system seems crazy, there's a good reason for it: it allows us to release FilmStrip for general use without tying it to one specific tween engine. FilmStrip could be made faster with a custom animation system: scene objects could be separately targeted instead of blanket-updating the whole scene each subframe. But honestly, having to learn some new animation syntax just to use FilmStrip sounds like a bit of a drag, doesn't it? This way you should be able to quickly plug a FilmStrip render into an existing project and freely toggle rendering on and off at any time -- without needing to change your animation syntax.\
+METHOD BEHIND THE MADNESS: If this patch system seems crazy, there's a good reason for it: it allows us to release FilmStrip for general use without tying it to one specific tween engine. This way you should be able to quickly plug a FilmStrip render into an existing project and freely toggle rendering on and off at any time -- without needing to change your animation syntax.\
 \pard\pardeftab720\ql\qnatural
 \cf0 \
 \
@@ -166,7 +173,23 @@ METHOD BEHIND THE MADNESS: If this patch system seems crazy, there's a good reas
 \pard\pardeftab720\ql\qnatural
 \cf5 public\cf0  \cf5 static\cf0  \cf6 function\cf0  updateAll($e:Event = \cf5 null\cf0 ):\cf5 void\cf0  \{\
 	\cf7 var\cf0  time:uint = currentTime = \cf3 PulseControl.getCurrentTime()\cf0 , ml:Dictionary = masterList, a:Array, i:int, tween:TweenLite;\
-\cf5 ...
+\cf5 ...\
+\
+\pard\pardeftab720
+
+\f5\fs22 \cf5 public\cf0  \cf5 static\cf0  \cf6 function\cf0  updateAll($e:Event = \cf5 null\cf0 ):\cf5 void\cf0  \{\
+	
+\f2\fs24 \cf5 ...
+\f5\fs22 \cf0 \
+	\cf5 for each\cf0  (a \cf5 in\cf0  ml) \{\
+		\cf5 for\cf0  (i = a.length - 1; i > -1; i--) \{\
+			tween = a[i];\
+			\cf3 if (!PulseControl.isWhitelisted(tween.target)) \{\
+				continue;\
+			\}\
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 ...
 \f0\fs28 \cf0 \
 \
 \pard\pardeftab720\ql\qnatural
@@ -176,20 +199,19 @@ METHOD BEHIND THE MADNESS: If this patch system seems crazy, there's a good reas
 \pard\pardeftab720\ql\qnatural
 \cf5 import\cf0  com.animoto.filmstrip.PulseControl;\
 \cf5 ...\cf0 \
-\pard\pardeftab720
+\pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf5 public\cf0  \cf6 function\cf0  TweenGroup($tweens:Array=\cf5 null\cf0 , $DefaultTweenClass:Class=\cf5 null\cf0 , $align:String=\cf8 "none"\cf0 , $stagger:Number=0) \{
+\f5\fs22 \cf5 public\cf0  \cf6 function\cf0  TweenGroup($tweens:Array=\cf5 null\cf0 , $DefaultTweenClass:Class=\cf5 null\cf0 , $align:String=\cf8 "none"\cf0 , $stagger:Number=0) \{
 \f2\fs24 \
-\pard\pardeftab720
 
-\f4\fs22 \cf0 	\cf5 super\cf0 ();\
+\f5\fs22 	\cf5 super\cf0 ();\
 	\cf5 if\cf0  (!_classInitted) \{\
 \pard\pardeftab720\ql\qnatural
 
 \f2\fs24 \cf5 ...\
-\pard\pardeftab720
+\pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf0 	\cf3 PulseControl.addEngineListener(checkExpiration, false, -1, true);\cf0 \
+\f5\fs22 \cf0 	\cf3 PulseControl.addEngineListener(checkExpiration, false, -1, true);\cf0 \
 	_classInitted = \cf5 true\cf0 ;\
 \}\
 \pard\pardeftab720\ql\qnatural
@@ -232,9 +254,25 @@ METHOD BEHIND THE MADNESS: If this patch system seems crazy, there's a good reas
 \pard\pardeftab720\ql\qnatural
 
 \f0\fs28 \cf0 \
+\pard\pardeftab720
+
+\f5\fs22 \cf5 private\cf0  \cf5 static\cf0  \cf6 function\cf0  updateTweenByIndex (i:Number):Boolean \{\
+\pard\pardeftab720
+
+\f2\fs24 \cf5 ...
+\f5\fs22 \cf0 \
+	\cf5 if\cf0  (cTime >= tTweening.timeStart) \{\
+		\cf9 // Can already start\cf0 \
+\
+		tScope = tTweening.scope;\
+		\
+		\cf3 if (!PulseControl.isWhitelisted(tScope)) \{\
+			return true;\
+		\}
+\f0\fs28 \cf0 \
 \pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf0 \
+\f5\fs22 \cf0 \
 \pard\pardeftab720\ql\qnatural
 
 \f0\b\fs36 \cf0 GTWEEN
@@ -251,6 +289,25 @@ You can use GTween in HYBRID and FRAME timingModes, but not TIME.\
 \pard\pardeftab720\ql\qnatural
 
 \f2\fs24 \cf4 \
+\pard\pardeftab720
+
+\f5\fs22 \cf4 package\cf0  com.gskinner.motion \{\
+	\cf5 import\cf0  com.animoto.filmstrip.PulseControl;\
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 ...\
+\pard\pardeftab720\ql\qnatural
+\cf4 \
+\pard\pardeftab720
+
+\f5\fs22 \cf5 public\cf0  \cf6 function\cf0  setPosition(position:Number,suppressEvents:Boolean=\cf5 true\cf0 ):\cf5 void\cf0  \{\
+	\cf3 if (!PulseControl.isWhitelisted(_target)) \{\
+		return;\
+	\}\cf0 \
+	_previousPosition = _position;
+\f2\fs24 \cf5 \
+\pard\pardeftab720\ql\qnatural
+\cf4 \
 \pard\pardeftab720\ql\qnatural
 
 \f0\i\fs28 \cf0 (You can safely remove the 'shape' lines commented out here.)
@@ -260,7 +317,6 @@ You can use GTween in HYBRID and FRAME timingModes, but not TIME.\
 \cf9 //import flash.display.Shape;\cf0 \
 \pard\pardeftab720\ql\qnatural
 \cf5 import\cf0  com.animoto.filmstrip.PulseControl;\
-\cf5 ...\
 \pard\pardeftab720\ql\qnatural
 \cf4 \
 class\cf0  FrameTicker \cf5 extends\cf0  EventDispatcher \cf5 implements\cf0  ITicker \{\
@@ -270,8 +326,7 @@ class\cf0  FrameTicker \cf5 extends\cf0  EventDispatcher \cf5 implements\cf0  IT
 	\cf5 public\cf0  \cf6 function\cf0  FrameTicker():\cf5 void\cf0  \{\
 		\cf9 //shape = new Shape();\cf0 \
 		\cf3 PulseControl.addEngineListener(tick);\cf0 \
-	\}\
-\cf5 ...\
+	\}\cf5 \
 \pard\pardeftab720\ql\qnatural
 \cf0 \
 \pard\pardeftab720\ql\qnatural
@@ -306,9 +361,14 @@ class\cf0  FrameTicker \cf5 extends\cf0  EventDispatcher \cf5 implements\cf0  IT
 \i0 \
 \
 Be sure you have the updated version of FilmStrip for this patch, PulseControl.pulseShape has been set to \
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 \
+\
 \
 \pard\pardeftab720\ql\qnatural
-\cf4 class:\cf0  org.as3lib.kitchensync.core.Synchronizer
+
+\f0\fs28 \cf4 class:\cf0  org.as3lib.kitchensync.core.Synchronizer
 \f2\fs24 \
 \pard\pardeftab720\ql\qnatural
 \cf5 \
@@ -319,23 +379,90 @@ import\cf0  com.animoto.filmstrip.PulseControl;\
 \f2\fs24 \cf5 \
 \pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf5 public\cf0  \cf6 function\cf0  \cf5 set\cf0  frameRateSeed(frameRateSeed:DisplayObject):\cf5 void\cf0  \{\
+\f5\fs22 \cf5 public\cf0  \cf6 function\cf0  \cf5 set\cf0  frameRateSeed(frameRateSeed:DisplayObject):\cf5 void\cf0  \{\
 	\cf5 if\cf0  (frameRateSeed && frameRateSeed.stage) \{\
 		_stage = frameRateSeed.stage;\
 		\cf3 PulseControl.pulseShape = frameRateSeed;\
 		PulseControl.addEngineListener(_instance.onEnterFrame, false, int.MAX_VALUE, false);
 \f2\fs24 \cf5 \
-...\
 
-\f4\fs22 \
+\f5\fs22 \
 private\cf0  \cf6 function\cf0  dispatchUpdate():\cf5 void\cf0  \{\
-	\cf3 _currentTime = PulseControl.getCurrentTime();\cf0 \
-\pard\pardeftab720\ql\qnatural
-
-\f2\fs24 \cf5 ...
+	\cf3 _currentTime = PulseControl.getCurrentTime();
 \f0\fs28 \cf0 \
 \
+\pard\pardeftab720\ql\qnatural
+\cf0 \
+\pard\pardeftab720\ql\qnatural
+\cf4 class:\cf0  org.as3lib.kitchensync.action.KSTween
+\f2\fs24 \
+\pard\pardeftab720\ql\qnatural
+\cf5 \
+import\cf0  com.animoto.filmstrip.PulseControl;\
+\cf5 ...\
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 \
+\pard\pardeftab720
+
+\f5\fs22 \cf5 override\cf0  \cf5 public\cf0  \cf6 function\cf0  update(currentTimestamp:Timestamp):\cf5 void\cf0  \{\
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 ...\
+\pard\pardeftab720
+
+\f5\fs22 \cf0 		\cf9 // if this is the start of the tween.\cf0 \
+		\cf5 if\cf0  (timeElapsed <= 1) \{\
+			\cf5 for each\cf0  (target \cf5 in\cf0  _tweenTargets) \{\
+				\cf3 if (targetIsWhitelisted(target)) \{\
+					continue;\
+				\}\cf0 \
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 ...\
+\pard\pardeftab720
+
+\f5\fs22 \cf0 		\cf9 // apply the result to each tween target				\cf0 \
+		\cf5 for each\cf0  (target \cf5 in\cf0  _tweenTargets) \{\
+			\cf3 if (targetIsWhitelisted(target)) \{\
+				continue;\
+			\}\cf0 \
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 ...\
+\pard\pardeftab720
+
+\f5\fs22 \cf0 		\cf9 // if the tween's duration is complete.\cf0 \
+		\cf5 if\cf0  (durationHasElapsed) \{\
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 ...\
+\pard\pardeftab720
+
+\f5\fs22 \cf0 			\cf5 if\cf0  (_snapToValueOnComplete) \{ \
+				\cf5 for each\cf0  (target \cf5 in\cf0  _tweenTargets) \{\
+					\cf3 if (targetIsWhitelisted(target)) \{\
+						continue;\
+					\}\cf0 \
+					target.updateTween(1.0); \
+\pard\pardeftab720\ql\qnatural
+
+\f2\fs24 \cf5 ...\
+\pard\pardeftab720
+
+\f5\fs22 \cf0 \}\
 \
+\pard\pardeftab720
+\cf3 protected function targetIsWhitelisted(target:Object):Boolean \{\
+	return target.hasOwnProperty("target") && !PulseControl.isWhitelisted(target.target);\
+\}
+\f0\fs28 \
+\pard\pardeftab720\ql\qnatural
+\cf0 \
+\pard\pardeftab720\li1440\ql\qnatural
+\cf0 The above patch should work with any tween types with a 'target' property.\
+\pard\pardeftab720\ql\qnatural
+\cf0 \
 \pard\pardeftab720\ql\qnatural
 
 \b\fs36 \cf0 BOOSTWORTHY
@@ -355,37 +482,30 @@ private\cf0  \cf6 function\cf0  dispatchUpdate():\cf5 void\cf0  \{\
 \
 \pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf5 public\cf0  \cf6 function\cf0  dispose():\cf5 void\cf0 \
+\f5\fs22 \cf5 public\cf0  \cf6 function\cf0  dispose():\cf5 void\cf0 \
 \{\
 \pard\pardeftab720\ql\qnatural
 
 \f2\fs24 \cf5 ...
-\f4\fs22 \cf0 \
+\f5\fs22 \cf0 \
 	\cf5 if\cf0 (m_fncOnEnterFrame != \cf5 null\cf0  && m_objStage != \cf5 null\cf0 )\
 	\{\
 		\cf3 PulseControl.removeEngineListener(m_fncOnEnterFrame);\cf0 \
 	\}
 \f0\fs28 \
-
-\f2\fs24 \cf5 ...
-\f0\fs28 \cf0 \
 \
 \pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf5 protected\cf0  \cf6 function\cf0  startEnterFrame():\cf5 void\cf0 \
+\f5\fs22 \cf5 protected\cf0  \cf6 function\cf0  startEnterFrame():\cf5 void\cf0 \
 \{\
 \pard\pardeftab720\ql\qnatural
 
 \f2\fs24 \cf5 ...
-\f4\fs22 \cf0 \
+\f5\fs22 \cf0 \
 	\cf5 if\cf0 (m_objStage)\
 	\{\
 		\cf3 PulseControl.addEngineListener(m_fncOnEnterFrame);\cf0 \
 	\}\
-
-\f2\fs24 \cf5 ...
-\f4\fs22 \cf0 \
-\
 \
 \pard\pardeftab720\ql\qnatural
 \cf2 /**\cf0 \
@@ -397,14 +517,11 @@ private\cf0  \cf6 function\cf0  dispatchUpdate():\cf5 void\cf0  \{\
 \pard\pardeftab720\ql\qnatural
 
 \f2\fs24 \cf5 ...
-\f4\fs22 \cf0 \
+\f5\fs22 \cf0 \
 	\cf5 if\cf0 (m_objStage)\
 	\{\
 		\cf3 PulseControl.removeEngineListener(m_fncOnEnterFrame);\cf0 \
 	\}\
-
-\f2\fs24 \cf5 ...
-\f4\fs22 \cf0 \
 \
 \pard\pardeftab720\ql\qnatural
 
@@ -440,7 +557,7 @@ Go will work with FilmStrip as long as the pulseInterval property of playable it
 \cf0 SIDE NOTE: Because Go lets you run multiple pulses at once, if for some reason you wanted to continue doing animation during a FilmStrip render, you can run live animations on a different pulseInterval. This is demonstrated in the test file with a second sprite that doesn't get pulse-controlled. (This is probably a useless point of information, since FilmStrip is a serious processor hog and is not intended for use in a live app.)\
 \pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf5 \
+\f5\fs22 \cf5 \
 \pard\pardeftab720\ql\qnatural
 
 \f0\fs28 \cf4 class:\cf0  org.goasap.GoEngine
@@ -463,7 +580,25 @@ private\cf0  \cf5 static\cf0  \cf7 var\cf0  pulseSprite : \cf3 PulseControl\cf0 
 \{\
 	\cf7 var\cf0  pulse:int = (event \cf5 is\cf0  TimerEvent ? ( event.target \cf5 as\cf0  Timer ).delay : ENTER_FRAME);\
 	\cf7 var\cf0  currentTime:Number = \cf3 (pulse==ENTER_FRAME ? PulseControl.getCurrentTime() : getTimer());\cf0 \
-\
+\pard\pardeftab720\ql\qnatural
+\cf5 ...
+\f0\fs28 \cf0 \
+\pard\pardeftab720
+
+\f5\fs22 \cf0 	\cf5 for\cf0  (\cf7 var\cf0  item:* \cf5 in\cf0  items) \{\
+		\cf5 if\cf0  (items[ item ]==pulse && !addQueue[ item ]) \{\
+			\cf3 if (item.hasOwnProperty("target") && !PulseControl.isWhitelisted(item.target)) \{\
+				continue;\
+			\}
+\f2\fs24 \cf0 \
+\pard\pardeftab720\ql\qnatural
+
+\f0\fs28 \cf0 \
+\pard\pardeftab720\li1440\ql\qnatural
+\cf0 The above patch should work with any tween types with a 'target' property.\
+
+\f2\fs24 \cf5 \
+\pard\pardeftab720\ql\qnatural
 \cf5 private\cf0  \cf5 static\cf0  \cf6 function\cf0  addPulse(pulse : int) : Boolean\
 \{\
 	\cf5 if\cf0  (pulse==ENTER_FRAME) \{\
@@ -480,7 +615,7 @@ private\cf0  \cf5 static\cf0  \cf7 var\cf0  pulseSprite : \cf3 PulseControl\cf0 
 			\cf5 delete\cf0  timers[ ENTER_FRAME ];\
 \pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf0 \
+\f5\fs22 \cf0 \
 \
 \
 \pard\pardeftab720\ql\qnatural
@@ -496,5 +631,5 @@ private\cf0  \cf5 static\cf0  \cf7 var\cf0  pulseSprite : \cf3 PulseControl\cf0 
 \f2\fs24 \cf0 \
 \pard\pardeftab720\ql\qnatural
 
-\f4\fs22 \cf0 \
+\f5\fs22 \cf0 \
 }

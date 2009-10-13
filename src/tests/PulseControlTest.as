@@ -1,22 +1,19 @@
-package {
+package tests
+{
 	import com.animoto.filmstrip.PulseControl;
 	
-	import flash.display.GradientType;
 	import flash.display.Sprite;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
-	
-	import gs.TweenLite;
-	import gs.easing.Elastic;
 
 	[SWF(backgroundColor="#FFFFFF", frameRate="30")]
 	
-	public class TweenLitePatchTest extends Sprite
+	public class PulseControlTest extends Sprite
 	{
 		private var t:TextField;
-		public function TweenLitePatchTest()
+		public function PulseControlTest()
 		{
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			t = new TextField();
@@ -27,15 +24,6 @@ package {
 			t.y = 100;
 			addChild(t);
 			
-			PulseControl.addEnterFrameListener(updateTime);
-			
-			var s:Sprite = new Sprite();
-			s.graphics.beginGradientFill(GradientType.LINEAR, [0xFFFFFF, 0x336699], [1,1], [0,255]);
-			s.x = 100;
-			s.y = 50;
-			s.graphics.drawRect(-11, -11, 22, 22);
-			addChild(s);
-			TweenLite.to(s, 5, { x:500, delay:1, ease:Elastic.easeOut });
 			
 			var b:TextField = new TextField();
 			b.border = true;
@@ -65,6 +53,7 @@ package {
 			});
 			addChild(b);
 			
+			
 			b = new TextField();
 			b.border = true;
 			b.background = true;
@@ -78,6 +67,7 @@ package {
 				PulseControl.advanceTime(1000/15); 
 			});
 			addChild(b);
+			
 			
 			b = new TextField();
 			b.border = true;
@@ -106,6 +96,8 @@ package {
 				PulseControl.removeEnterFrameListener(updateTime); 
 			});
 			addChild(b);
+			
+			
 		}
 		
 		private function updateTime(e:Event):void {

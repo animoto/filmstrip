@@ -5,10 +5,8 @@ package {
 	import com.animoto.filmstrip.scenes.FilmStripScenePV3D;
 	
 	import filmstripexamples.Dice;
-	import filmstripexamples.ExampleScene;
 	import filmstripexamples.OverlappingDice;
 	
-	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
@@ -37,8 +35,10 @@ package {
 			
 			// Uncomment one of these example scenes, then set up the filmstrip in step 2 of start() below.
 			
-//			example = new Dice();
 			example = new OverlappingDice();
+			/*(example as OverlappingDice).doFastCameraMove = true; // this part not ready yet*/
+			
+//			example = new Dice();
 //			example = new Photos();
 			
 			addChild(example);
@@ -166,6 +166,8 @@ package {
 //			MotionBlurSettings.strength = 3;
 //			MotionBlurSettings.peakAlpha = .5;
 //			MotionBlurSettings.useFixedFrameCount = true;
+			
+			
 			
 			
 			filmStrip.addEventListener(FilmStripEvent.RENDER_STOPPED, super.exitSplitScreen);
