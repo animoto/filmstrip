@@ -53,7 +53,7 @@ package com.animoto.filmstrip.scenes
 			this.camera = camera;
 			this.viewport = viewport;
 			this.renderer = renderer;
-			recursionExceptions.push(DAE);
+			recursionExceptionClasses.push(DAE);
 		}
 		
 		override public function getVisibleChildren(target:Object=null):Array {
