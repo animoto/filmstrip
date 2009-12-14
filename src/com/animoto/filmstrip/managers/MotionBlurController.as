@@ -73,16 +73,18 @@ package com.animoto.filmstrip.managers
 			index = 0;
 			newContainer();
 			
-			if (!whitelist) {
-				// Target whitelisting improves performance by only animating the targets being rendered.
-				// The whitelist is global, assuming there's not going to be multiple filmstrips operating at once on the same object.
-				whitelist = controller.scene.getDisplayChain(target);
-				if (!whitelist) { // fallback
-					whitelist = [ target ];
+			if (!wholeScene) {
+				if (!whitelist) {
+					// Target whitelisting improves performance by only animating the targets being rendered.
+					// The whitelist is global, assuming there's not going to be multiple filmstrips operating at once on the same object.
+					whitelist = controller.scene.getDisplayChain(target);
+					if (!whitelist) { // fallback
+						whitelist = [ target ];
+					}
 				}
+				PulseControl.whitelist(whitelist);
+				PulseControl.whitelist(controller.scene.getPerpectiveObject());
 			}
-			PulseControl.whitelist(whitelist);
-			PulseControl.whitelist(controller.scene.getPerpectiveObject());
 			
 			PulseControl.setTime(controller.currentTime);
 			capturePrimaryFrame();
@@ -110,21 +112,23 @@ package com.animoto.filmstrip.managers
 			}
 			
 			// Update animation and capture subframe.
-			if (cameraBlurPercent!=1) { // otherwise, full camera blur so we leave the camera in the whitelist.
-				if (cameraBlurPercent==0) { // no camera blur - unwhitelist for all subframes.
-					PulseControl.unwhitelist(controller.scene.getPerpectiveObject());
-				}
-				else { // adjusted camera blur
-					var camTime:int = Math.round(controller.currentTime + (subframeDuration * cameraBlurPercent * index * offset));
-					if (camTime==time) { // adjustment ended in full camera blur for this subframe anyway
-						PulseControl.whitelist(controller.scene.getPerpectiveObject());
-					}
-					else { // value is adjusted - animate camera separately then restore whitelist (slower)
-						PulseControl.unwhitelist(whitelist);
-						PulseControl.whitelist(controller.scene.getPerpectiveObject());
-						PulseControl.setTime(camTime);
+			if (!wholeScene) {
+				if (cameraBlurPercent!=1) { // otherwise, full camera blur so we leave the camera in the whitelist.
+					if (cameraBlurPercent==0) { // no camera blur - unwhitelist for all subframes.
 						PulseControl.unwhitelist(controller.scene.getPerpectiveObject());
-						PulseControl.whitelist(whitelist);
+					}
+					else { // adjusted camera blur
+						var camTime:int = Math.round(controller.currentTime + (subframeDuration * cameraBlurPercent * index * offset));
+						if (camTime==time) { // adjustment ended in full camera blur for this subframe anyway
+							PulseControl.whitelist(controller.scene.getPerpectiveObject());
+						}
+						else { // value is adjusted - animate camera separately then restore whitelist (slower)
+							PulseControl.unwhitelist(whitelist);
+							PulseControl.whitelist(controller.scene.getPerpectiveObject());
+							PulseControl.setTime(camTime);
+							PulseControl.unwhitelist(controller.scene.getPerpectiveObject());
+							PulseControl.whitelist(whitelist);
+						}
 					}
 				}
 			}
